@@ -37,6 +37,13 @@ public class App {
     }
 
     /**
+     * Main loop method
+     */
+    public void run(){
+
+    }
+
+    /**
      * Shows the logo of our app
      */
     private void showLogo() {
