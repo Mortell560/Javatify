@@ -19,7 +19,7 @@ public class AccountAPI extends API {
     }
 
     public Account getAccountByUsername(String username) throws NoSuchElementException {
-        return super.getAllWhere(Account.class, "username", username).getFirst();
+        return super.getAllLike(Account.class, "username", username).getFirst();
     }
 
     public void addAccount(Account account){

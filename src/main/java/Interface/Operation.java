@@ -1,5 +1,9 @@
 package Interface;
 
+import jakarta.persistence.EntityManagerFactory;
+
 public interface Operation {
-    public void run(Object... args);
+    void run(EntityManagerFactory emf);
+
+    Operation getNextOperation();
 }

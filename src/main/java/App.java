@@ -1,13 +1,9 @@
 import DatabaseAPI.AccountAPI;
 import DatabaseAPI.SongAPI;
-import Entities.Account;
-import jakarta.persistence.EntityManager;
+import Interface.LoginRegister.LoggingOperation;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 
-import java.util.Calendar;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.logging.Logger;
 
 /**
@@ -28,6 +24,7 @@ public class App {
         songAPI.loadSongs(dataPath);
         logger.info(App.class.getName() + ": Constructor Finished");
         showLogo();
+        run();
 
     }
 
@@ -35,7 +32,8 @@ public class App {
      * Main loop method
      */
     public void run() {
-
+        LoggingOperation op = new LoggingOperation(null);
+        op.run(entityManagerFactory);
     }
 
     /**
