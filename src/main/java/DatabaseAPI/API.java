@@ -15,12 +15,12 @@ import java.util.logging.Logger;
  * Any special request will be implemented into child classes
  */
 abstract class API {
-    private static EntityManagerFactory entityManagerFactory; // Static since it is shared
-    private final Logger logger;
+    final EntityManagerFactory entityManagerFactory; // Static since it is shared
+    final Logger logger;
 
     public API(Logger logger, EntityManagerFactory entityManagerFactory) {
         this.logger = logger;
-        API.entityManagerFactory = entityManagerFactory;
+        this.entityManagerFactory = entityManagerFactory;
     }
 
     /**
@@ -145,6 +145,91 @@ abstract class API {
         }
         em.close();
         return res;
+    }
+
+    /**
+     * Creates an object within the database
+     * @param object Object to save
+     * @param <E> Class of the object to save
+     */
+    <E> void createObject(E object){
+        EntityManager em = entityManagerFactory.createEntityManager();
+        em.getTransaction().begin();
+        em.persist(object);
+        try {
+            em.getTransaction().commit();
+        } catch (RuntimeException e) {
+            logger.severe(e.getMessage());
+            em.getTransaction().rollback();
+        }
+        em.close();
+    }
+
+    /**
+     * Creates several objects within the database. Use this method if you need perfs since entity managers are expensive
+     * @param objects Objects to save
+     * @param <E> Class of the objects to save
+     */
+    <E> void createObjects(List<E> objects){
+        EntityManager em = entityManagerFactory.createEntityManager();
+        em.getTransaction().begin();
+        for(E object : objects){
+            em.persist(object);
+        }
+        try {
+            em.getTransaction().commit();
+        }
+        catch (RuntimeException e) {
+            logger.severe(e.getMessage());
+            em.getTransaction().rollback();
+        }
+        em.close();
+    }
+
+    /**
+     * Removes an object from the database
+     * @param c Class of the object
+     * @param object Object to remove
+     * @return The removed object
+     * @param <E> Class of the object
+     */
+    <E> E deleteObject(Class<E> c, E object){
+        EntityManager em = entityManagerFactory.createEntityManager();
+        em.getTransaction().begin();
+        object = em.find(c, object);
+        em.remove(object);
+        try {
+            em.getTransaction().commit();
+        }
+        catch (RuntimeException e) {
+            logger.severe(e.getMessage());
+            em.getTransaction().rollback();
+        }
+        em.close();
+        return object;
+    }
+
+    /**
+     * Removes an object from the database
+     * @param c Class of the object
+     * @param id Id of the object to remove
+     * @return The removed object
+     * @param <E> Class of the object
+     */
+    <E> E deleteObjectById(Class<E> c, Long id){
+        EntityManager em = entityManagerFactory.createEntityManager();
+        em.getTransaction().begin();
+        E object = em.find(c, id);
+        em.remove(object);
+        try {
+            em.getTransaction().commit();
+        }
+        catch (RuntimeException e) {
+            logger.severe(e.getMessage());
+            em.getTransaction().rollback();
+        }
+        em.close();
+        return object;
     }
 
 }

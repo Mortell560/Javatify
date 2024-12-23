@@ -2,7 +2,7 @@ package Entities;
 
 import jakarta.persistence.*;
 
-import java.util.Calendar;
+import java.util.*;
 
 @Entity
 @Table(name = "Account")
@@ -25,6 +25,28 @@ public class Account {
     @Temporal(TemporalType.TIMESTAMP)
     @Column(updatable = false)
     private Calendar dateCreation;
+    @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH})
+    @JoinTable(name = "friends")
+    private Set<Account> friends = new HashSet<>();
+    @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH})
+    @JoinTable(name = "family")
+    private Set<Account> family = new HashSet<>();
+
+    public Set<Account> getFriends() {
+        return friends;
+    }
+
+    public void setFriends(Set<Account> friends) {
+        this.friends = friends;
+    }
+
+    public Set<Account> getFamily() {
+        return family;
+    }
+
+    public void setFamily(Set<Account> family) {
+        this.family = family;
+    }
 
     public Calendar getBirthday() {
         return birthday;
