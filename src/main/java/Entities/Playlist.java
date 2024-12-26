@@ -14,10 +14,20 @@ public class Playlist {
     private Long id;
     @Column(nullable = false)
     private String name;
+    @Column(nullable = false)
+    private boolean collaborative;
     @OneToMany
     private Set<Account> owners = new HashSet<>();
     @OneToMany
     private List<Song> songs = new ArrayList<>();
+
+    public boolean isCollaborative() {
+        return collaborative;
+    }
+
+    public void setCollaborative(boolean collaborative) {
+        this.collaborative = collaborative;
+    }
 
     public Long getId() {
         return id;

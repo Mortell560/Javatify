@@ -2,6 +2,7 @@ package Interface.LoginRegister;
 
 import DatabaseAPI.AccountAPI;
 import Entities.Account;
+import Interface.Menu.MainMenu;
 import Interface.Operation;
 import jakarta.persistence.EntityManagerFactory;
 
@@ -16,12 +17,12 @@ public class LoggingOperation implements Operation {
     private Operation nextOperation = null;
     private AccountAPI accountAPI;
     private Logger logger = Logger.getLogger(this.getClass().getName());
-    public LoggingOperation(String args) {}
+    public LoggingOperation() {}
 
     public void run(EntityManagerFactory factory) {
         System.out.println("Welcome to Javatify\nPlease enter an username to start (Case sensitive): ");
         accountAPI = new AccountAPI(logger, factory);
-        Scanner scanner = new Scanner(System.in);
+        Scanner scanner = new Scanner(System.in); // NB: Never close it, it closes also the buffer underlying
         String username = scanner.nextLine().trim();
         try{
             setCurrUser(accountAPI.getAccountByUsername(username));
@@ -37,10 +38,13 @@ public class LoggingOperation implements Operation {
         } while (!password.equals(currUser.getPassword()) && !password.equals("null"));
 
         if (password.equals("null")) {
-            setNextOperation(new LoggingOperation(null));
+            setNextOperation(new LoggingOperation());
             setCurrUser(null);
             return;
         }
+
+        setNextOperation(new MainMenu(currUser));
+        setCurrUser(currUser);
         System.out.println("Welcome back to Javatify " + getCurrUser().getUsername() + " !\n");
     }
 
@@ -67,16 +71,19 @@ public class LoggingOperation implements Operation {
             System.out.println("Please enter a valid date of birth (i.e: dd-mm-yyyy): ");
             date = Arrays.stream(scanner.nextLine().split("-")).mapToInt(Integer::parseInt).toArray();
         } while (date.length != 3);
-        System.out.println(date[0] + " " + date[1] + " " + date[2]);
-        account.setBirthday(new Calendar.Builder().setDate(date[2], date[1]-1, date[0]).build());
+        account.setBirthday(new Calendar.Builder().setDate(date[2], date[1]-1, date[0]).build()); // offset by 1 for months
         account.setDateCreation(Calendar.getInstance());
-        System.out.println(account.getDateCreation().getTime());
-        System.out.println(account.getBirthday().getTime());
-        System.out.println(account.getAge());
+        if (account.getAge() < 18){
+            System.out.println("You need to be at least 18 years old to register an account yourself !\n");
+            setCurrUser(null);
+            setNextOperation(new LoggingOperation());
+            return;
+        }
 
         accountAPI.addAccount(account);
         setCurrUser(account);
-        setNextOperation(null);
+        setNextOperation(new MainMenu(account));
+        System.out.println("Welcome back to Javatify " + getCurrUser().getUsername() + " !\n");
     }
 
     public Operation getNextOperation() {

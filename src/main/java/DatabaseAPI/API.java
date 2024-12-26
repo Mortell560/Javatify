@@ -3,6 +3,7 @@ package DatabaseAPI;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.NoResultException;
+import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
@@ -52,7 +53,7 @@ abstract class API {
     }
 
     /**
-     * Returns all objects of type <b>E</b> that satisfy the given Where param=value clause
+     * Returns all objects of type <b>E</b> that satisfy the given where clause param=value
      * @param c Class to fetch from
      * @param paramName Name of the column inside the database
      * @param paramValue Value to check for. Must be exact
@@ -82,7 +83,7 @@ abstract class API {
     }
 
     /**
-     * Returns all objects of type <b>E</b> that satisfy the given Where param LIKE value clause
+     * Returns all objects of type <b>E</b> that satisfy the given clause param LIKE value
      * @param c Class to fetch from
      * @param paramName Name of the column inside the database
      * @param paramValue Value to check for. Must be a pattern by SQL standards with the %
@@ -100,6 +101,39 @@ abstract class API {
         query.where(builder.like(i.get(paramName).as(String.class), paramValue)); // Since paramNames should be never accessed, no need to handle the exception with try catch
 
         List<E> res = em.createQuery(query).getResultList();
+
+        try {
+            em.getTransaction().commit();
+        } catch (RuntimeException e) {
+            logger.severe(e.getMessage());
+            em.getTransaction().rollback();
+        }
+        em.close();
+        return res;
+    }
+
+    /**
+     * Returns all the objects of type <b>E</b> that satisfy the given Like param value clause
+     * @param c Class to fetch from
+     * @param paramName Name of the column inside the database
+     * @param paramValue Value to check for. Must be a pattern by SQL standards with the
+     * @param page Page to return
+     * @param pageSize Pagination size
+     * @return All objects of type <b>E</b> within the database respecting the condition
+     * @param <E> Type corresponding to the table to fetch
+     */
+    <E> List<E> getAllLikePaginated(Class<E> c, String paramName, String paramValue, int page, int pageSize) {
+        EntityManager em = entityManagerFactory.createEntityManager();
+        em.getTransaction().begin();
+        CriteriaBuilder builder = em.getCriteriaBuilder();
+        CriteriaQuery<E> query = builder.createQuery(c);
+        Root<E> i = query.from(c);
+        query.select(i);
+        query.where(builder.like(i.get(paramName).as(String.class), paramValue));
+        TypedQuery<E> typedQuery = em.createQuery(query);
+        typedQuery.setFirstResult((page - 1) * pageSize);
+        typedQuery.setMaxResults(pageSize);
+        List<E> res = typedQuery.getResultList();
 
         try {
             em.getTransaction().commit();

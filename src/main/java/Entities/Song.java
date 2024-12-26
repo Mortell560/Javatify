@@ -23,6 +23,19 @@ public class Song {
     @Column(nullable = false)
     private Long listeningCount;
 
+    /**
+     * Used while navigating between songs because the text can get pretty heavy
+     * @return a string with the minimum of information about the song
+     */
+    public String toMinimalString(){
+        return getTitle() + " - " + getArtist() + " - " + getLink() + " - " + getListeningCount();
+    }
+
+    @Override
+    public String toString() {
+        return getTitle() + " by Artist: " + getArtist() + "\n" + getText();
+    }
+
     public Long getListeningCount() {
         return listeningCount;
     }

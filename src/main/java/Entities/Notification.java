@@ -10,16 +10,36 @@ public class Notification {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Account account;
     @Column(nullable = false)
     private String message;
     @Column(nullable = false)
     private int operation;
     @Column
     private String args;
+    @Column(nullable = false)
+    private boolean read = false;
 
-    private Operation convertToOperation(){
+    public Account getAccount() {
+        return account;
+    }
+
+    public void setAccount(Account account) {
+        this.account = account;
+    }
+
+    public boolean isRead() {
+        return read;
+    }
+
+    public void setRead(boolean read) {
+        this.read = read;
+    }
+
+    private Operation convertToOperation() {
         return switch (operation) {
-            case 1 -> new LoggingOperation(args);
+            case 1 -> new LoggingOperation();
             case 2 -> new MusicConsulting(args);
             default -> null;
         };
