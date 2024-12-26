@@ -27,22 +27,28 @@ public class Account {
     @Temporal(TemporalType.TIMESTAMP)
     @Column(updatable = false)
     private Calendar dateCreation;
-    @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH})
+    @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH}, fetch = FetchType.EAGER)
     @JoinTable(name = "friends")
     private Set<Account> friends = new HashSet<>();
-    @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH})
+    @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH}, fetch = FetchType.EAGER)
     @JoinTable(name = "family")
     private Set<Account> family = new HashSet<>();
 
+    @Override
+    public String toString(){
+        return "Account Id: " + getId() + "\nName: " + getName() + "\nSurname: " + getSurname() + "\nUsername: " + getUsername()
+                + "\nBirthday: " + getBirthday().getTime()
+                + "\nDateCreation: " + getDateCreation().getTime()
+                + "\nFriends: " + String.join(",", getFriends().stream().map(Account::getUsername).toArray(String[]::new))
+                + "\nFamily: " + String.join(",", getFamily().stream().map(Account::getUsername).toArray(String[]::new));
+    }
+
     public int getAge(){
-        int d1,m1,y1,d2,m2,y2;
+        int d1,m1,y1;
         d1 = birthday.get(Calendar.DAY_OF_MONTH);
         m1 = birthday.get(Calendar.MONTH)+1;
         y1 = birthday.get(Calendar.YEAR);
-        d2 = dateCreation.get(Calendar.DAY_OF_MONTH);
-        m2 = dateCreation.get(Calendar.MONTH)+1;
-        y2 = dateCreation.get(Calendar.YEAR);
-        return Period.between(LocalDate.of(y1,m1,d1), LocalDate.of(y2, m2, d2)).getYears();
+        return Period.between(LocalDate.of(y1,m1,d1), LocalDate.now()).getYears();
     }
 
     public Set<Account> getFriends() {

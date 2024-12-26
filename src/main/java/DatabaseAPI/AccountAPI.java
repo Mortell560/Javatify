@@ -20,6 +20,43 @@ public class AccountAPI extends API {
         return super.getAllLike(Account.class, "username", username).getFirst();
     }
 
+    public Account deleteAccount(Account account){
+        return super.deleteObject(Account.class, account);
+    }
+
+    public Account updateAccountPassword(Account account, String newPassword){
+        EntityManager em = entityManagerFactory.createEntityManager();
+        em.getTransaction().begin();
+        account = em.merge(account);
+        em.refresh(account);
+        account.setPassword(newPassword);
+        try {
+            em.getTransaction().commit();
+        } catch (RuntimeException e) {
+            logger.severe(e.getMessage());
+            em.getTransaction().rollback();
+        }
+        em.close();
+        return account;
+    }
+
+    public Account updateAccountNames(Account account, String name, String surname){
+        EntityManager em = entityManagerFactory.createEntityManager();
+        em.getTransaction().begin();
+        account = em.merge(account);
+        em.refresh(account);
+        account.setName(name);
+        account.setSurname(surname);
+        try {
+            em.getTransaction().commit();
+        } catch (RuntimeException e) {
+            logger.severe(e.getMessage());
+            em.getTransaction().rollback();
+        }
+        em.close();
+        return account;
+    }
+
     public Set<Account> getAllFriendAccounts(Account account){
         Set<Account> friendAccounts = account.getFriends();
         // if the friendship isn't mutual then it's not a friend
@@ -50,7 +87,7 @@ public class AccountAPI extends API {
         super.createObject(account);
     }
 
-    private void updateAccountForSets(Account account, Set<Account> toUpdate, String type){
+    private Account updateAccountForSets(Account account, Set<Account> toUpdate, String type){
         EntityManager em = entityManagerFactory.createEntityManager();
         em.getTransaction().begin();
         account = em.merge(account);
@@ -59,7 +96,7 @@ public class AccountAPI extends API {
             account.setFamily(toUpdate);
         }
         else {
-            account.setFamily(toUpdate);
+            account.setFriends(toUpdate);
         }
 
         try {
@@ -69,13 +106,14 @@ public class AccountAPI extends API {
             em.getTransaction().rollback();
         }
         em.close();
+        return account;
     }
 
-    public void updateAccountFriends(Account account, Set<Account> friends){
-        updateAccountForSets(account, friends, "friends");
+    public Account updateAccountFriends(Account account, Set<Account> friends){
+        return updateAccountForSets(account, friends, "friends");
     }
 
-    public void updateAccountFamily(Account account, Set<Account> family){
-        updateAccountForSets(account, family, "family");
+    public Account updateAccountFamily(Account account, Set<Account> family){
+        return updateAccountForSets(account, family, "family");
     }
 }

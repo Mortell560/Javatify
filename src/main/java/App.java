@@ -3,6 +3,7 @@ import DatabaseAPI.SongAPI;
 import Entities.Account;
 import Entities.Notification;
 import Interface.LoginRegister.LoggingOperation;
+import Interface.Menu.SettingsMenu;
 import Interface.Operation;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
@@ -45,12 +46,19 @@ public class App {
     public void run() {
         Operation op = new LoggingOperation();
         op.run(entityManagerFactory);
+        setCurrAccount(((LoggingOperation) op).getCurrUser());
+        if (currAccount != null) {
+            showNotifs();
+        }
+
         while (op.getNextOperation() != null) {
             op = op.getNextOperation();
             op.run(entityManagerFactory);
             if (op instanceof LoggingOperation) {
                 setCurrAccount(((LoggingOperation) op).getCurrUser());
-                showNotifs();
+                if (currAccount != null) {
+                    showNotifs();
+                }
             }
         }
         leaveScreen();

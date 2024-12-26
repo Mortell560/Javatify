@@ -20,15 +20,20 @@ public class MainMenu implements Operation {
         System.out.println("2. Search for a music");
         System.out.println("3. Listen to playlist or create playlist");
         System.out.println("4. Create a BlindTest or Play one");
-        System.out.println("5. Logout");
-        System.out.println("6. Exit");
+        System.out.println("5. Read notifications");
+        System.out.println("6. Logout");
+        System.out.println("7. Exit");
 
-        int choice = Safeguards.getInputInterval(1, 6);
+        int choice = Safeguards.getInputInterval(1, 7);
 
         switch (choice) {
+            case 1 -> setNextOperation(new SettingsMenu(account));
             case 2 -> setNextOperation(new MusicSearchMenu(account));
-            case 5 -> setNextOperation(new LoggingOperation());
-            case 6 -> setNextOperation(null);
+            case 3 -> setNextOperation(new PlaylistMenu());
+            case 4 -> setNextOperation(new BlindTestMenu());
+            case 5 -> setNextOperation(new NotificationMenu());
+            case 6 -> setNextOperation(new LoggingOperation());
+            case 7 -> setNextOperation(null);
             default -> setNextOperation(new MainMenu(account));
         }
     }

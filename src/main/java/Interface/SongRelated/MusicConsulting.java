@@ -1,11 +1,7 @@
 package Interface.SongRelated;
 
-import DatabaseAPI.AccountAPI;
-import DatabaseAPI.PlaylistAPI;
-import DatabaseAPI.SongAPI;
-import Entities.Account;
-import Entities.Playlist;
-import Entities.Song;
+import DatabaseAPI.*;
+import Entities.*;
 import Interface.Menu.MusicSearchMenu;
 import Interface.Operation;
 import Utils.Safeguards;
@@ -14,6 +10,7 @@ import jakarta.persistence.EntityManagerFactory;
 import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.logging.Logger;
 
 public class MusicConsulting implements Operation {
@@ -23,6 +20,9 @@ public class MusicConsulting implements Operation {
     private SongAPI songAPI;
     private AccountAPI accountAPI;
     private PlaylistAPI playlistAPI;
+    private BlindTestAPI blindTestAPI;
+    private StatsAPI statsAPI;
+    private NotificationAPI notificationAPI;
     private Long accId, songId;
     private final Logger logger = Logger.getLogger(MusicConsulting.class.getName());
     public MusicConsulting(String args) {
@@ -32,6 +32,10 @@ public class MusicConsulting implements Operation {
     public void run(EntityManagerFactory factory) {
         songAPI = new SongAPI(logger, factory);
         accountAPI = new AccountAPI(logger, factory);
+        playlistAPI = new PlaylistAPI(logger, factory);
+        blindTestAPI = new BlindTestAPI(logger, factory);
+        notificationAPI = new NotificationAPI(logger, factory);
+        statsAPI = new StatsAPI(logger, factory);
         song = songAPI.getSongById(songId);
         account = accountAPI.getAccountById(accId);
         makeChoice();
@@ -45,18 +49,21 @@ public class MusicConsulting implements Operation {
         System.out.println("3. Remove from playlist");
         System.out.println("4. Add to BlindTest");
         System.out.println("5. Remove from BlindTest");
-        System.out.println("6. Recommend to a friend");
+        System.out.println("6. Recommend to a friend or family member");
         System.out.println("7. Return back");
 
         int choice = Safeguards.getInputInterval(1, 7);
 
         switch (choice){
-            case 1 -> System.out.println(song);
+            case 1 -> {
+                System.out.println(song);
+                statsAPI.addView(account, song);
+            }
             case 2 -> addToPlaylist();
             case 3 -> removeFromPlaylist();
             case 4 -> addToBlindTest();
             case 5 -> removeFromBlindTest();
-            case 6 -> recommendToFriend();
+            case 6 -> recommendTo();
         }
 
         if (choice != 7){
@@ -65,15 +72,62 @@ public class MusicConsulting implements Operation {
     }
 
     private void addToBlindTest(){
+        List<BlindTest> b = blindTestAPI.getAllBTForAccount(account);
+        if (b.isEmpty()) {
+            System.out.println("Please create a blindtest first !");
+            return;
+        }
+        System.out.println("Select a blindtest: ");
+        int i = 0;
+        for (BlindTest blindTest : b) {
+            System.out.println(i + ". - " + blindTest.getName());
+            i++;
+        }
+        int choice = Safeguards.getInputInterval(0, i);
 
+        blindTestAPI.addSongToBT(b.get(choice), song);
     }
 
     private void removeFromBlindTest(){
-
+        List<BlindTest> b = blindTestAPI.getAllBTForAccount(account);
+        b.removeIf(x -> !x.getSongs().contains(song));
+        if (b.isEmpty()) {
+            System.out.println("No blindtest found with this song !");
+            return;
+        }
+        System.out.println("Select a blindtest: ");
+        int i = 0;
+        for (BlindTest blindTest : b) {
+            System.out.println(i + ". - " + blindTest.getName());
+            i++;
+        }
+        int choice = Safeguards.getInputInterval(0, i);
+        blindTestAPI.deleteSongFromBT(b.get(choice), song);
     }
 
-    private void recommendToFriend(){
-
+    private void recommendTo(){
+        Set<Account> related = account.getFriends();
+        related.addAll(account.getFamily());
+        List<Account> l = related.stream().toList();
+        if (related.isEmpty()){
+            System.out.println("No friend or Family members found ! (Sorry)");
+            return;
+        }
+        System.out.println("Choose who to recommend this song to: ");
+        int i = 0;
+        for (Account a : related){
+            System.out.println(i + ". - " + a.getUsername());
+            i++;
+        }
+        int choice = Safeguards.getInputInterval(0, i);
+        Notification notif = new Notification();
+        notif.setMessage("New song recommended by " + account.getUsername() + " !");
+        notif.setOperation(2);
+        notif.setAccount(l.get(choice));
+        String args = l.get(choice).getId() + ";" + songId;
+        notif.setArgs(args);
+        notificationAPI.createNotification(notif);
+        statsAPI.addReco(l.get(choice), song);
     }
 
     private void addToPlaylist(){
