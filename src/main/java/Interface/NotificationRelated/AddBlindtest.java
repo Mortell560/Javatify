@@ -1,14 +1,15 @@
-package Interface.Menu;
+package Interface.NotificationRelated;
 
-import Entities.Account;
 import Interface.Operation;
 import jakarta.persistence.EntityManagerFactory;
 
-public class BlindTestMenu implements Operation {
+public class AddBlindtest implements Operation {
     private Operation nextOperation;
-    private Account account;
-    public BlindTestMenu(Account account) {
-        this.account = account;
+    public AddBlindtest(String args) {}
+
+
+    public void run(EntityManagerFactory emf) {
+
     }
 
     private void setNextOperation(Operation nextOperation) {
@@ -17,9 +18,5 @@ public class BlindTestMenu implements Operation {
 
     public Operation getNextOperation() {
         return nextOperation;
-    }
-
-    public void run(EntityManagerFactory emf) {
-
     }
 }

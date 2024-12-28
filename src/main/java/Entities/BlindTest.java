@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "BlindTest")
@@ -13,11 +14,11 @@ public class BlindTest {
     private Long id;
     @Column(nullable = false)
     private String name;
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     private Account owner;
-    @OneToMany
-    private List<Account> invitedAccounts;
-    @OneToMany
+    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
+    private Set<Account> invitedAccounts;
+    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
     private List<Song> songs = new ArrayList<>();
     @Column(nullable = false)
     @Basic
@@ -31,11 +32,11 @@ public class BlindTest {
         this.name = name;
     }
 
-    public List<Account> getInvitedAccounts() {
+    public Set<Account> getInvitedAccounts() {
         return invitedAccounts;
     }
 
-    public void setInvitedAccounts(List<Account> invitedAccounts) {
+    public void setInvitedAccounts(Set<Account> invitedAccounts) {
         this.invitedAccounts = invitedAccounts;
     }
 

@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 /**
- * Main class for the App Javatify
+ * Main class for the App Javatify <br/>
  * Use the run() method to start
  */
 public class App {
@@ -68,11 +68,11 @@ public class App {
     private void showNotifs(){
         List<Notification> notifs = notificationAPI.getAllUnreadNotifForAcc(currAccount);
         if (notifs.isEmpty()){
-            System.out.println("No notifications found for account: " + currAccount);
+            System.out.println("No new notifications found for account: " + currAccount.getUsername());
             return;
         }
         System.out.println("New notifications (size: " + notifs.size() + "):");
-        notifs.forEach(x -> System.out.println(x.getMessage()));
+        notifs.forEach(System.out::println);
     }
 
     /**

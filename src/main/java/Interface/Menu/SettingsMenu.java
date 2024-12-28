@@ -1,7 +1,11 @@
 package Interface.Menu;
 
 import DatabaseAPI.AccountAPI;
+import DatabaseAPI.NotificationAPI;
 import Entities.Account;
+import Entities.Notification;
+import Interface.NotificationRelated.AddFamily;
+import Interface.NotificationRelated.AddFriend;
 import Interface.Operation;
 import Utils.Safeguards;
 import jakarta.persistence.EntityManagerFactory;
@@ -14,6 +18,7 @@ public class SettingsMenu implements Operation {
     private Operation nextOperation;
     private Account account;
     private AccountAPI accountAPI;
+    private NotificationAPI notificationAPI;
 
     public SettingsMenu(Account account) {
         this.account = account;
@@ -21,6 +26,7 @@ public class SettingsMenu implements Operation {
 
     public void run(EntityManagerFactory emf) {
         accountAPI = new AccountAPI(logger, emf);
+        notificationAPI = new NotificationAPI(logger, emf);
         System.out.println("Account settings");
         System.out.println("1. Change password");
         System.out.println("2. Change surname and name");
@@ -36,6 +42,8 @@ public class SettingsMenu implements Operation {
             case 1 -> changePassword();
             case 2 -> changeName();
             case 3 -> AddOrRemoveChild();
+            case 4 -> AddOrRemoveFamilyAccount();
+            case 5 -> AddOrRemoveFriendAccount();
             case 6 -> showAccountInformation();
         }
         setNextOperation(new MainMenu(getCurrentAccount()));
@@ -48,6 +56,79 @@ public class SettingsMenu implements Operation {
 
     private void setCurrentAccount(Account account) {
         this.account = account;
+    }
+
+    private void AddOrRemoveFriendAccount() {
+        System.out.println("Do you want to add some account to your friends? Enter null to exit");
+        System.out.println("1. Add to friends");
+        System.out.println("2. Remove from friends");
+
+        Scanner scanner = new Scanner(System.in);
+        String choice = scanner.nextLine();
+        if (choice.equalsIgnoreCase("1")) {
+            AddFriend();
+        }
+        else if (choice.equalsIgnoreCase("2")) {
+            RemoveFriend();
+        }
+    }
+
+    private void AddFriend(){
+        System.out.println("Enter the username of the friend you want to add");
+        Scanner scanner = new Scanner(System.in);
+        String username = scanner.nextLine().trim();
+        Account friend;
+        try{
+            friend = accountAPI.getAccountByUsername(username);
+        } catch (NoSuchElementException e) {
+            System.out.println("That username does not exist");
+            return;
+        }
+        if (username.equalsIgnoreCase(account.getUsername())) {
+            System.out.println("Nice try");
+        }
+        else if (friend.getAge() >= 18 && account.getAge() >= 18 || friend.getAge() < 18 && account.getAge() < 18) {
+            Notification notification = new Notification();
+            notification.setRead(false);
+            notification.setTime(Calendar.getInstance());
+            notification.setArgs(account.getId()+";"+friend.getId());
+            notification.setAccount(friend);
+            notification.setMessage("You have a friend request from " + account.getUsername());
+            notification.setOperation(1);
+            notificationAPI.createNotification(notification);
+            System.out.println("Request sent");
+        }
+        else {
+            System.out.println("Illegal request.");
+        }
+
+    }
+
+    private void RemoveFriend(){
+        Set<Account> friends = account.getFriends();
+        if (friends.isEmpty()){
+            System.out.println("No friends to remove");
+            return;
+        }
+        System.out.println("Choose friend to remove or 0 to exit: ");
+        Scanner scanner = new Scanner(System.in);
+        int i = 0;
+        for (Account friend : friends) {
+            i++;
+            System.out.println(i + ". - " + friend.getUsername());
+        }
+        int choice = Safeguards.getInputInterval(0, i);
+        if (choice == 0){
+            System.out.println("Returning");
+            return;
+        }
+        Account friend = friends.stream().toList().get(choice - 1);
+        Set<Account> ffriends = friend.getFriends();
+        ffriends.removeIf(f -> f.getUsername().equals(account.getUsername()));
+        friends.removeIf(f -> f.getUsername().equals(friend.getUsername()));
+        accountAPI.updateAccountFriends(account, friends);
+        accountAPI.updateAccountFriends(friend, ffriends);
+        System.out.println("Removed " + friend.getUsername() + " from friends");
     }
 
     private void AddOrRemoveFamilyAccount() {
@@ -69,17 +150,62 @@ public class SettingsMenu implements Operation {
     }
 
     private void RemoveFamilyAccount() {
-        Set<Account> family = account.getFamily();
+        Set<Account> family = new HashSet<>(account.getFamily());
         family.removeIf(account -> account.getAge() < 18);
         if (family.isEmpty()) {
             System.out.println("Haha good one but you need to add some account to your family (other than your own children)");
             return;
         }
+        int i = 0;
+        System.out.println("Choose family to remove or 0 to exit: ");
+        for (Account familyAccount : family) {
+            i++;
+            System.out.println(i + ". - " + familyAccount.getUsername());
+        }
+        int choice = Safeguards.getInputInterval(0, i);
+        if (choice == 0){
+            System.out.println("Returning");
+            return;
+        }
+        Account f = family.stream().toList().get(choice - 1);
+        Set<Account> familyAccounts = f.getFamily();
+        Set<Account> aAccounts = account.getFamily();
+        aAccounts.removeIf(x -> x.getUsername().equals(f.getUsername()));
+        familyAccounts.removeIf(x -> x.getUsername().equals(account.getUsername()));
+        accountAPI.updateAccountFamily(account, aAccounts);
+        accountAPI.updateAccountFamily(f, familyAccounts);
+        System.out.println("Removed " + f.getUsername() + " from family");
+
 
     }
 
     private void AddFamilyAccount() {
-
+        System.out.println("Enter the username of the friend you want to add");
+        Scanner scanner = new Scanner(System.in);
+        String username = scanner.nextLine().trim();
+        Account family;
+        try{
+            family = accountAPI.getAccountByUsername(username);
+        } catch (NoSuchElementException e) {
+            System.out.println("That username does not exist");
+            return;
+        }
+        if (family.getAge() < 18) {
+            System.out.println("Nice try but you cannot adopt others' children. Use the previous menu to add your own kids");
+            return;
+        } else if (username.equalsIgnoreCase(account.getUsername())) {
+            System.out.println("Nice try");
+            return;
+        }
+        Notification notification = new Notification();
+        notification.setRead(false);
+        notification.setTime(Calendar.getInstance());
+        notification.setArgs(account.getId()+";"+family.getId());
+        notification.setAccount(family);
+        notification.setMessage("You have a family request from " + account.getUsername());
+        notification.setOperation(3);
+        notificationAPI.createNotification(notification);
+        System.out.println("Request sent");
     }
 
     private void showAccountInformation() {
@@ -108,15 +234,20 @@ public class SettingsMenu implements Operation {
     private void removeChildAcc() {
         Set<Account> childAcc = account.getFamily();
         childAcc.removeIf(account -> account.getAge() >= 18);
+        if (childAcc.isEmpty()) {
+            System.out.println("You have no children");
+            return;
+        }
         int i = 0;
         for (Account acc : childAcc) {
             System.out.println("Child account " + i + ": " + acc.getUsername());
+            i++;
         }
         System.out.println("Select the child account: ");
         int choice = Safeguards.getInputInterval(0, i);
         Set<Account> newFamily = account.getFamily();
         Account childToRemove = childAcc.stream().toList().get(choice);
-        newFamily.remove(childToRemove);
+        newFamily.removeIf(x -> Objects.equals(x.getId(), childToRemove.getId()));
         setCurrentAccount(accountAPI.updateAccountFamily(account, newFamily));
         accountAPI.deleteAccount(childToRemove);
     }
@@ -157,7 +288,7 @@ public class SettingsMenu implements Operation {
         } while (date.length != 3);
         childAcc.setBirthday(new Calendar.Builder().setDate(date[2], date[1] - 1, date[0]).build()); // offset by 1 for months
         childAcc.setDateCreation(Calendar.getInstance());
-        if (account.getAge() >= 18) {
+        if (childAcc.getAge() >= 18) {
             System.out.println("Haha good one but you cannot add an adult account");
             return;
         }
@@ -166,7 +297,9 @@ public class SettingsMenu implements Operation {
         Set<Account> s = account.getFamily();
         s.add(childAcc);
         setCurrentAccount(accountAPI.updateAccountFamily(account, s));
-
+        s = new HashSet<>();
+        s.add(account);
+        accountAPI.updateAccountFamily(childAcc, s);
     }
 
     private void changePassword() {

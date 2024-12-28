@@ -66,10 +66,13 @@ public class LoggingOperation implements Operation {
         account.setName(scanner.nextLine().trim());
         System.out.println("Please enter a surname (nullable): ");
         account.setSurname(scanner.nextLine().trim());
-        int[] date;
+        int[] date = new int[0];
         do {
             System.out.println("Please enter a valid date of birth (i.e: dd-mm-yyyy): ");
-            date = Arrays.stream(scanner.nextLine().split("-")).mapToInt(Integer::parseInt).toArray();
+            try{
+                date = Arrays.stream(scanner.nextLine().split("-")).mapToInt(Integer::parseInt).toArray();
+            }
+            catch(Exception ignored){}
         } while (date.length != 3);
         account.setBirthday(new Calendar.Builder().setDate(date[2], date[1]-1, date[0]).build()); // offset by 1 for months
         account.setDateCreation(Calendar.getInstance());

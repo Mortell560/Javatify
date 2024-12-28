@@ -16,10 +16,10 @@ public class Playlist {
     private String name;
     @Column(nullable = false)
     private boolean collaborative;
-    @OneToMany
+    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH})
     private Set<Account> owners = new HashSet<>();
-    @OneToMany
-    private List<Song> songs = new ArrayList<>();
+    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH})
+    private List<Song> songs = new ArrayList<>(); // yes you can add as many duplicates as you want it is not a bug => mostly done for fun
 
     public boolean isCollaborative() {
         return collaborative;

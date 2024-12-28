@@ -21,7 +21,7 @@ public class AccountAPI extends API {
     }
 
     public Account deleteAccount(Account account){
-        return super.deleteObject(Account.class, account);
+        return super.deleteObjectById(Account.class, account.getId());
     }
 
     public Account updateAccountPassword(Account account, String newPassword){
@@ -60,14 +60,14 @@ public class AccountAPI extends API {
     public Set<Account> getAllFriendAccounts(Account account){
         Set<Account> friendAccounts = account.getFriends();
         // if the friendship isn't mutual then it's not a friend
-        friendAccounts.removeIf(friendAccount -> !friendAccount.getFriends().contains(account));
+        friendAccounts.removeIf(friendAccount -> friendAccount.getFriends().stream().noneMatch(x -> x.getUsername().equals(account.getUsername())));
         return friendAccounts;
     }
 
     public Set<Account> getAllFamilyAccounts(Account account){
         Set<Account> familyAccounts = account.getFriends();
         // if the relation isn't mutual then it's not a family member
-        familyAccounts.removeIf(familyAccount -> !familyAccount.getFamily().contains(account));
+        familyAccounts.removeIf(familyAccount -> familyAccount.getFamily().stream().noneMatch(x -> x.getUsername().equals(account.getUsername())));
         return familyAccounts;
     }
 

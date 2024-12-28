@@ -2,21 +2,23 @@ package Interface.SongRelated;
 
 import DatabaseAPI.*;
 import Entities.*;
+import Interface.Menu.MainMenu;
 import Interface.Menu.MusicSearchMenu;
 import Interface.Operation;
 import Utils.Safeguards;
 import jakarta.persistence.EntityManagerFactory;
 
-import java.util.InputMismatchException;
 import java.util.List;
-import java.util.Scanner;
 import java.util.Set;
 import java.util.logging.Logger;
 
 public class MusicConsulting implements Operation {
+    private final Logger logger = Logger.getLogger(MusicConsulting.class.getName());
+    private final String args;
     private Operation nextOperation;
     private Account account;
     private Song song;
+    private Playlist playlist;
     private SongAPI songAPI;
     private AccountAPI accountAPI;
     private PlaylistAPI playlistAPI;
@@ -24,8 +26,10 @@ public class MusicConsulting implements Operation {
     private StatsAPI statsAPI;
     private NotificationAPI notificationAPI;
     private Long accId, songId;
-    private final Logger logger = Logger.getLogger(MusicConsulting.class.getName());
+    private final boolean reco = false;
+
     public MusicConsulting(String args) {
+        this.args = args;
         parseArgs(args);
     }
 
@@ -54,10 +58,11 @@ public class MusicConsulting implements Operation {
 
         int choice = Safeguards.getInputInterval(1, 7);
 
-        switch (choice){
+        switch (choice) {
             case 1 -> {
                 System.out.println(song);
                 statsAPI.addView(account, song);
+                songAPI.addListening(song);
             }
             case 2 -> addToPlaylist();
             case 3 -> removeFromPlaylist();
@@ -66,12 +71,14 @@ public class MusicConsulting implements Operation {
             case 6 -> recommendTo();
         }
 
-        if (choice != 7){
-            makeChoice();
+        if (reco) {
+            setNextOperation(new MainMenu(account));
+        } else {
+            setNextOperation(new MusicSearchMenu(account));
         }
     }
 
-    private void addToBlindTest(){
+    private void addToBlindTest() {
         List<BlindTest> b = blindTestAPI.getAllBTForAccount(account);
         if (b.isEmpty()) {
             System.out.println("Please create a blindtest first !");
@@ -88,7 +95,7 @@ public class MusicConsulting implements Operation {
         blindTestAPI.addSongToBT(b.get(choice), song);
     }
 
-    private void removeFromBlindTest(){
+    private void removeFromBlindTest() {
         List<BlindTest> b = blindTestAPI.getAllBTForAccount(account);
         b.removeIf(x -> !x.getSongs().contains(song));
         if (b.isEmpty()) {
@@ -105,17 +112,17 @@ public class MusicConsulting implements Operation {
         blindTestAPI.deleteSongFromBT(b.get(choice), song);
     }
 
-    private void recommendTo(){
+    private void recommendTo() {
         Set<Account> related = account.getFriends();
         related.addAll(account.getFamily());
         List<Account> l = related.stream().toList();
-        if (related.isEmpty()){
+        if (related.isEmpty()) {
             System.out.println("No friend or Family members found ! (Sorry)");
             return;
         }
         System.out.println("Choose who to recommend this song to: ");
         int i = 0;
-        for (Account a : related){
+        for (Account a : related) {
             System.out.println(i + ". - " + a.getUsername());
             i++;
         }
@@ -130,7 +137,7 @@ public class MusicConsulting implements Operation {
         statsAPI.addReco(l.get(choice), song);
     }
 
-    private void addToPlaylist(){
+    private void addToPlaylist() {
         List<Playlist> p = playlistAPI.getAllPlaylistsForAccount(account);
         if (p.isEmpty()) {
             System.out.println("Please create a playlist first !");
@@ -147,7 +154,7 @@ public class MusicConsulting implements Operation {
         playlistAPI.addSongToPlaylist(p.get(choice).getId(), song);
     }
 
-    private void removeFromPlaylist(){
+    private void removeFromPlaylist() {
         List<Playlist> p = playlistAPI.getAllPlaylistsForAccount(account);
         p.removeIf(playlist -> !playlist.getSongs().contains(song));
         if (p.isEmpty()) {
@@ -169,23 +176,24 @@ public class MusicConsulting implements Operation {
     /**
      * Parsed args for music to read are always the same: <br/>
      * accountId;songId;operation;argsForNextOp
+     *
      * @param args arguments to be parsed
      */
     private void parseArgs(String args) {
         String[] argParts = args.split(";");
         accId = Long.parseLong(argParts[0]);
         songId = Long.parseLong(argParts[1]);
-        if (argParts.length == 2) {
-            setNextOperation(new MusicSearchMenu(account));
+        if (argParts.length > 2) {
+
         }
 
     }
 
-    private void setNextOperation(Operation nextOperation) {
-        this.nextOperation = nextOperation;
-    }
-
     public Operation getNextOperation() {
         return nextOperation;
+    }
+
+    private void setNextOperation(Operation nextOperation) {
+        this.nextOperation = nextOperation;
     }
 }

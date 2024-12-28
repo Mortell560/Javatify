@@ -57,7 +57,7 @@ public class SongAPI extends API {
         return super.getAllLikePaginated(Song.class, "text", "%"+text+"%", page, MAX_SONGS_PER_PAGE);
     }
     
-    public List<Song> getAllByPopularityPaginated(String artist, int page) {
+    public List<Song> getAllByPopularityPaginated(String arg, int page) {
         EntityManager em = entityManagerFactory.createEntityManager();
 
         em.getTransaction().begin();
@@ -71,7 +71,7 @@ public class SongAPI extends API {
         typedQuery.setFirstResult((page - 1) * MAX_SONGS_PER_PAGE);
         typedQuery.setMaxResults(MAX_SONGS_PER_PAGE);
 
-        List<Song> songs = em.createQuery(query).getResultList();
+        List<Song> songs = typedQuery.getResultList();
 
         try {
             em.getTransaction().commit();
@@ -81,6 +81,22 @@ public class SongAPI extends API {
         }
         em.close();
         return songs;
+    }
+
+    public Song addListening(Song song) {
+        EntityManager em = entityManagerFactory.createEntityManager();
+        em.getTransaction().begin();
+        song = em.merge(song);
+        em.refresh(song);
+        song.setListeningCount(song.getListeningCount()+1);
+        try {
+            em.getTransaction().commit();
+        } catch (RuntimeException e) {
+            logger.severe(e.getMessage());
+            em.getTransaction().rollback();
+        }
+        em.close();
+        return song;
     }
 
     /**

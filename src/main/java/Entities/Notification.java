@@ -1,9 +1,14 @@
 package Entities;
 
-import Interface.LoginRegister.LoggingOperation;
+import Interface.NotificationRelated.AddBlindtest;
+import Interface.NotificationRelated.AddFamily;
+import Interface.NotificationRelated.AddFriend;
+import Interface.NotificationRelated.AddPlaylist;
 import Interface.Operation;
 import Interface.SongRelated.MusicConsulting;
 import jakarta.persistence.*;
+
+import java.util.Calendar;
 
 @Entity
 public class Notification {
@@ -20,6 +25,22 @@ public class Notification {
     private String args;
     @Column(nullable = false)
     private boolean read = false;
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(nullable = false)
+    private Calendar time;
+
+    @Override
+    public String toString() {
+        return getTime().getTime() + " - " + getMessage();
+    }
+
+    public Calendar getTime() {
+        return time;
+    }
+
+    public void setTime(Calendar time) {
+        this.time = time;
+    }
 
     public Account getAccount() {
         return account;
@@ -37,9 +58,12 @@ public class Notification {
         this.read = read;
     }
 
-    private Operation convertToOperation() {
+    public Operation convertToOperation() {
         return switch (operation) {
-            case 1 -> new LoggingOperation();
+            case 1 -> new AddFriend(args);
+            case 3 -> new AddFamily(args);
+            case 4 -> new AddPlaylist(args);
+            case 5 -> new AddBlindtest(args);
             case 2 -> new MusicConsulting(args);
             default -> null;
         };

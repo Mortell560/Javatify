@@ -7,11 +7,16 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 public class BlindTestAPI extends API {
     public BlindTestAPI(Logger logger, EntityManagerFactory factory){
         super(logger, factory);
+    }
+
+    public BlindTest getBlindTestById(Long id){
+        return super.getById(BlindTest.class, id);
     }
 
     public void addSongToBT(BlindTest blindTest, Song song){
@@ -34,7 +39,7 @@ public class BlindTestAPI extends API {
         em.getTransaction().begin();
         blindTest = em.merge(blindTest);
         em.refresh(blindTest);
-        blindTest.getSongs().remove(song);
+        blindTest.getSongs().removeIf(x -> Objects.equals(x.getId(), song.getId()));
         try {
             em.getTransaction().commit();
         } catch (RuntimeException e) {
@@ -64,7 +69,7 @@ public class BlindTestAPI extends API {
     }
 
     public BlindTest deleteBlindTest(BlindTest blindTest){
-        return super.deleteObject(BlindTest.class, blindTest);
+        return super.deleteObjectById(BlindTest.class, blindTest.getId());
     }
 
     public List<BlindTest> getAllBTForAccount(Account account){

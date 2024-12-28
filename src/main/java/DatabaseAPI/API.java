@@ -227,6 +227,7 @@ abstract class API {
      * @return The removed object
      * @param <E> Class of the object
      */
+    @Deprecated(since = "Hibernate broke it")
     <E> E deleteObject(Class<E> c, E object){
         EntityManager em = entityManagerFactory.createEntityManager();
         em.getTransaction().begin();

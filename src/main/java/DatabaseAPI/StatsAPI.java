@@ -6,12 +6,8 @@ import Entities.Song;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 public class StatsAPI extends API {
     public StatsAPI(Logger logger, EntityManagerFactory factory) {
@@ -28,12 +24,11 @@ public class StatsAPI extends API {
     }
 
     public void addView(Account account, Song song) {
-        Optional<PersonalStats> p = getPersonalStats(account, song);
-        if (p.isEmpty()){
+        PersonalStats p = getPersonalStats(account, song);
+        if (p == null) {
             createStat(account, song);
-            p = getPersonalStats(account, song);
         }
-        PersonalStats personalStats = p.get(); // Should be non-null by then
+        PersonalStats personalStats = getPersonalStats(account, song); // Should be non-null by then
         EntityManager em = entityManagerFactory.createEntityManager();
         em.getTransaction().begin();
         personalStats = em.merge(personalStats);
@@ -49,12 +44,12 @@ public class StatsAPI extends API {
     }
 
     public void addReco(Account account, Song song) {
-        Optional<PersonalStats> p = getPersonalStats(account, song);
-        if (p.isEmpty()){
+        PersonalStats p = getPersonalStats(account, song);
+        if (p == null) {
             createStat(account, song);
             p = getPersonalStats(account, song);
         }
-        PersonalStats personalStats = p.get(); // Should be non-null by then
+        PersonalStats personalStats = p; // Should be non-null by then
         EntityManager em = entityManagerFactory.createEntityManager();
         em.getTransaction().begin();
         personalStats = em.merge(personalStats);
@@ -69,10 +64,9 @@ public class StatsAPI extends API {
         em.close();
     }
 
-    public Optional<PersonalStats> getPersonalStats(Account account, Song song) {
-        List<PersonalStats> l1 = getAllWhere(PersonalStats.class, "account", account.getId());
-        List<PersonalStats> l2 = getAllWhere(PersonalStats.class, "song", song.getId());
-        Set<PersonalStats> set = l1.stream().distinct().filter(l2::contains).collect(Collectors.toSet());
-        return set.stream().findFirst();
+    public PersonalStats getPersonalStats(Account account, Song song) {
+        List<PersonalStats> p = getAll(PersonalStats.class);
+        p.removeIf(personal -> !personal.getAccount().getId().equals(account.getId()) && !personal.getSong().getId().equals(song.getId()));
+        return p.isEmpty() ? null : p.getFirst();
     }
 }

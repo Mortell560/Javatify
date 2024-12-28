@@ -44,8 +44,13 @@ public class SongSearch implements Operation {
         else if (sort.equalsIgnoreCase("count")) {
             HashMap<Song, Integer> songStat = new HashMap<>();
             for (Song song : songs) {
-                Optional<PersonalStats> p = statsAPI.getPersonalStats(account, song);
-                p.ifPresentOrElse(personalStats -> songStat.put(song, personalStats.getViews()), () -> songStat.put(song, 0));
+                PersonalStats p = statsAPI.getPersonalStats(account, song);
+                if (p != null) {
+                    songStat.put(song, p.getViews());
+                }
+                else{
+                    songStat.put(song, 0);
+                }
             }
             List<Map.Entry<Song, Integer>> res = songStat.entrySet().stream().sorted(Map.Entry.comparingByValue()).toList();
             songs = res.stream().map(Map.Entry::getKey).collect(Collectors.toList());
@@ -53,8 +58,13 @@ public class SongSearch implements Operation {
         else if (sort.equalsIgnoreCase("friend")) {
             HashMap<Song, Integer> songStat = new HashMap<>();
             for (Song song : songs) {
-                Optional<PersonalStats> p = statsAPI.getPersonalStats(account, song);
-                p.ifPresentOrElse(personalStats -> songStat.put(song, personalStats.getNbReco()), () -> songStat.put(song, 0));
+                PersonalStats p = statsAPI.getPersonalStats(account, song);
+                if (p != null) {
+                    songStat.put(song, p.getNbReco());
+                }
+                else{
+                    songStat.put(song, 0);
+                }
             }
             List<Map.Entry<Song, Integer>> res = songStat.entrySet().stream().sorted(Map.Entry.comparingByValue()).toList();
             songs = res.stream().map(Map.Entry::getKey).collect(Collectors.toList());

@@ -5,16 +5,22 @@ import Entities.Playlist;
 import Entities.Song;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import org.apache.commons.collections.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class PlaylistAPI extends API {
     public PlaylistAPI(Logger logger, EntityManagerFactory factory) {
         super(logger, factory);
+    }
+
+    public Playlist getPlaylistById(Long id) {
+        return super.getById(Playlist.class, id);
     }
 
     public List<Song> getAllSongs(Long id) {
@@ -32,9 +38,22 @@ public class PlaylistAPI extends API {
         super.createObject(playlist);
     }
 
+    public List<Playlist> getAllAccessiblePlaylistsForAccount(Account relative) {
+        Set<Account> l = relative.getFriends();
+        l.addAll(relative.getFamily());
+        List<Playlist> playlists = super.getAll(Playlist.class);
+        List<Playlist> filteredPlaylists = new ArrayList<>();
+        for (Playlist p : playlists) {
+            if (p.isCollaborative() && CollectionUtils.containsAny(p.getOwners(), l)) {
+                filteredPlaylists.add(p);
+            }
+        }
+        return filteredPlaylists;
+    }
+
     public List<Playlist> getAllPlaylistsForAccount(Account account) {
         List<Playlist> p = super.getAll(Playlist.class);
-        p.removeIf(playlist -> !playlist.getOwners().contains(account));
+        p.removeIf(playlist -> playlist.getOwners().stream().noneMatch(owner -> owner.getId().equals(account.getId())));
         return p;
     }
 
@@ -108,15 +127,15 @@ public class PlaylistAPI extends API {
 
     private void removeFromCollaborative(Playlist playlist, Account owner) {
         EntityManager em = entityManagerFactory.createEntityManager();
-        playlist.getOwners().remove(owner);
+        playlist.getOwners().removeIf(x -> x.getId().equals(owner.getId()));
         if (playlist.getOwners().isEmpty()){
             super.deleteObjectById(Playlist.class, playlist.getId());
             return;
         }
         em.getTransaction().begin();
         Playlist p = em.find(Playlist.class, playlist.getId());
-        Set<Account> s = p.getOwners();
-        s.remove(owner);
+        Set<Account> s = new HashSet<>(p.getOwners());
+        s.removeIf(x -> x.getId().equals(owner.getId()));
         p.setOwners(s);
         try {
             em.getTransaction().commit();
