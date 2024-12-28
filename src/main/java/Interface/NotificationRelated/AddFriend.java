@@ -10,6 +10,9 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.logging.Logger;
 
+/**
+ * Handles the notification 'Add a friend' for both adults and children
+ */
 public class AddFriend implements Operation {
     private Operation nextOperation;
     private AccountAPI accountAPI;

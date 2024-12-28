@@ -9,9 +9,9 @@ public class BlindTestResult {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     private Account user;
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private BlindTest test;
     @Column
     private int success;
@@ -20,6 +20,11 @@ public class BlindTestResult {
     @Temporal(TemporalType.TIMESTAMP)
     @Column(nullable = false)
     private Calendar timestamp;
+
+    @Override
+    public String toString() {
+        return getTimestamp().getTime() + " - " + getTest() + " - " + getUser().getUsername() + " - " + getSuccess() + " / " + getTotal();
+    }
 
     public Calendar getTimestamp() {
         return timestamp;

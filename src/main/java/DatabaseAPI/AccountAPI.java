@@ -4,15 +4,22 @@ import Entities.Account;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 
-import java.util.*;
+import java.util.NoSuchElementException;
+import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Logger;
 
+/**
+ * Class intended to make all the calls to the database for the Accounts
+ *
+ * @see Account
+ */
 public class AccountAPI extends API {
     public AccountAPI(Logger logger, EntityManagerFactory entityManagerFactory) {
         super(logger, entityManagerFactory);
     }
 
-    public Account getAccountById(Long id){
+    public Account getAccountById(Long id) {
         return super.getById(Account.class, id);
     }
 
@@ -20,11 +27,11 @@ public class AccountAPI extends API {
         return super.getAllLike(Account.class, "username", username).getFirst();
     }
 
-    public Account deleteAccount(Account account){
+    public Account deleteAccount(Account account) {
         return super.deleteObjectById(Account.class, account.getId());
     }
 
-    public Account updateAccountPassword(Account account, String newPassword){
+    public Account updateAccountPassword(Account account, String newPassword) {
         EntityManager em = entityManagerFactory.createEntityManager();
         em.getTransaction().begin();
         account = em.merge(account);
@@ -40,7 +47,7 @@ public class AccountAPI extends API {
         return account;
     }
 
-    public Account updateAccountNames(Account account, String name, String surname){
+    public Account updateAccountNames(Account account, String name, String surname) {
         EntityManager em = entityManagerFactory.createEntityManager();
         em.getTransaction().begin();
         account = em.merge(account);
@@ -57,45 +64,18 @@ public class AccountAPI extends API {
         return account;
     }
 
-    public Set<Account> getAllFriendAccounts(Account account){
-        Set<Account> friendAccounts = account.getFriends();
-        // if the friendship isn't mutual then it's not a friend
-        friendAccounts.removeIf(friendAccount -> friendAccount.getFriends().stream().noneMatch(x -> x.getUsername().equals(account.getUsername())));
-        return friendAccounts;
-    }
-
-    public Set<Account> getAllFamilyAccounts(Account account){
-        Set<Account> familyAccounts = account.getFriends();
-        // if the relation isn't mutual then it's not a family member
-        familyAccounts.removeIf(familyAccount -> familyAccount.getFamily().stream().noneMatch(x -> x.getUsername().equals(account.getUsername())));
-        return familyAccounts;
-    }
-
-    public boolean isFriendWithAccount(Account account, Account friendAccount){
-        getAllFriendAccounts(account);
-        getAllFamilyAccounts(friendAccount);
-        return account.getFriends().contains(friendAccount) && friendAccount.getFriends().contains(account);
-    }
-
-    public boolean isFamilyWithAccount(Account account, Account familyAccount){
-        getAllFriendAccounts(account);
-        getAllFamilyAccounts(familyAccount);
-        return account.getFamily().contains(familyAccount) && familyAccount.getFamily().contains(account);
-    }
-
-    public void addAccount(Account account){
+    public void addAccount(Account account) {
         super.createObject(account);
     }
 
-    private Account updateAccountForSets(Account account, Set<Account> toUpdate, String type){
+    private Account updateAccountForSets(Account account, Set<Account> toUpdate, String type) {
         EntityManager em = entityManagerFactory.createEntityManager();
         em.getTransaction().begin();
-        account = em.merge(account);
+        account = em.find(Account.class, account.getId());
         em.refresh(account);
-        if (type.equals("family")){
+        if (type.equals("family")) {
             account.setFamily(toUpdate);
-        }
-        else {
+        } else {
             account.setFriends(toUpdate);
         }
 
@@ -109,11 +89,20 @@ public class AccountAPI extends API {
         return account;
     }
 
-    public Account updateAccountFriends(Account account, Set<Account> friends){
+    public void removeAccountFromAllFriends(Account account) {
+        Set<Account> friends = account.getFriends();
+        for (Account friend : friends) {
+            Set<Account> ff = friend.getFriends();
+            ff.removeIf(x -> Objects.equals(x.getId(), account.getId()));
+            updateAccountFriends(friend, ff);
+        }
+    }
+
+    public Account updateAccountFriends(Account account, Set<Account> friends) {
         return updateAccountForSets(account, friends, "friends");
     }
 
-    public Account updateAccountFamily(Account account, Set<Account> family){
+    public Account updateAccountFamily(Account account, Set<Account> family) {
         return updateAccountForSets(account, family, "family");
     }
 }

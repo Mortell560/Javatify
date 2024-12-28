@@ -13,4 +13,7 @@ mvn package
 ```
 Then you should find the jar file within the target directory.
 ###### Important note
-Please remember to include the CSV containing all songs into the src/main/resources/ folder
+To launch the program just use:
+```bash
+java -jar Javatify-1.0-SNAPSHOT.jar <pathToCSV>
+```

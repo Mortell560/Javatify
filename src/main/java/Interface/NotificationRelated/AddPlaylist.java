@@ -11,6 +11,9 @@ import jakarta.persistence.EntityManagerFactory;
 import java.util.Scanner;
 import java.util.logging.Logger;
 
+/**
+ * Handles the notification 'add a playlist'
+ */
 public class AddPlaylist implements Operation {
     private Operation nextOperation;
     private AccountAPI accountAPI;
@@ -18,13 +21,10 @@ public class AddPlaylist implements Operation {
     private Long accId, playlistId;
     private Account account;
     private Playlist playlist;
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+    private final Logger logger = Logger.getLogger(this.getClass().getName());
+
     public AddPlaylist(String args) {
         parseArgs(args);
-    }
-
-    private void setNextOperation(Operation nextOperation) {
-        this.nextOperation = nextOperation;
     }
 
     private void parseArgs(String args) {
@@ -50,5 +50,9 @@ public class AddPlaylist implements Operation {
 
     public Operation getNextOperation() {
         return nextOperation;
+    }
+
+    private void setNextOperation(Operation nextOperation) {
+        this.nextOperation = nextOperation;
     }
 }

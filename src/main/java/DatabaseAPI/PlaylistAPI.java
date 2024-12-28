@@ -13,6 +13,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
+/**
+ * Class that handles the database calls for the Playlists
+ *
+ * @see Playlist
+ */
 public class PlaylistAPI extends API {
     public PlaylistAPI(Logger logger, EntityManagerFactory factory) {
         super(logger, factory);

@@ -1,9 +1,7 @@
 package Interface.Menu;
 
-import DatabaseAPI.AccountAPI;
-import DatabaseAPI.NotificationAPI;
-import Entities.Account;
-import Entities.Notification;
+import DatabaseAPI.*;
+import Entities.*;
 import Interface.NotificationRelated.AddFamily;
 import Interface.NotificationRelated.AddFriend;
 import Interface.Operation;
@@ -18,7 +16,11 @@ public class SettingsMenu implements Operation {
     private Operation nextOperation;
     private Account account;
     private AccountAPI accountAPI;
+    private BlindTestResultAPI resultAPI;
+    private BlindTestAPI blindTestAPI;
     private NotificationAPI notificationAPI;
+    private PlaylistAPI playlistAPI;
+    private StatsAPI statsAPI;
 
     public SettingsMenu(Account account) {
         this.account = account;
@@ -26,7 +28,11 @@ public class SettingsMenu implements Operation {
 
     public void run(EntityManagerFactory emf) {
         accountAPI = new AccountAPI(logger, emf);
+        resultAPI = new BlindTestResultAPI(logger, emf);
+        blindTestAPI = new BlindTestAPI(logger, emf);
         notificationAPI = new NotificationAPI(logger, emf);
+        playlistAPI = new PlaylistAPI(logger, emf);
+        statsAPI = new StatsAPI(logger, emf);
         System.out.println("Account settings");
         System.out.println("1. Change password");
         System.out.println("2. Change surname and name");
@@ -249,6 +255,14 @@ public class SettingsMenu implements Operation {
         Account childToRemove = childAcc.stream().toList().get(choice);
         newFamily.removeIf(x -> Objects.equals(x.getId(), childToRemove.getId()));
         setCurrentAccount(accountAPI.updateAccountFamily(account, newFamily));
+        resultAPI.removeAllBTResultsForAccount(childToRemove);
+        List<BlindTest> toRemove = blindTestAPI.getAllBTForAccount(childToRemove);
+        toRemove.forEach(x -> blindTestAPI.deleteBlindTest(x));
+        List<Playlist> p = playlistAPI.getAllPlaylistsForAccount(childToRemove);
+        p.forEach(x -> playlistAPI.deletePlaylist(x.getId(), childToRemove));
+        accountAPI.removeAccountFromAllFriends(childToRemove);
+        notificationAPI.deleteAllNotificationsForAcc(childToRemove);
+        statsAPI.deleteStatsForAccount(childToRemove);
         accountAPI.deleteAccount(childToRemove);
     }
 
@@ -281,10 +295,13 @@ public class SettingsMenu implements Operation {
         childAcc.setName(scanner.nextLine().trim());
         System.out.println("Please enter a surname (nullable): ");
         childAcc.setSurname(scanner.nextLine().trim());
-        int[] date;
+        int[] date = new int[0];
         do {
             System.out.println("Please enter a valid date of birth (i.e: dd-mm-yyyy): ");
-            date = Arrays.stream(scanner.nextLine().split("-")).mapToInt(Integer::parseInt).toArray();
+            try {
+                date = Arrays.stream(scanner.nextLine().split("-")).mapToInt(Integer::parseInt).toArray();
+            } catch (Exception ignored) {
+            }
         } while (date.length != 3);
         childAcc.setBirthday(new Calendar.Builder().setDate(date[2], date[1] - 1, date[0]).build()); // offset by 1 for months
         childAcc.setDateCreation(Calendar.getInstance());

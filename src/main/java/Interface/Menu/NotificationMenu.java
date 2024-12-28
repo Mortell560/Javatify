@@ -10,11 +10,17 @@ import jakarta.persistence.EntityManagerFactory;
 import java.util.List;
 import java.util.logging.Logger;
 
+/**
+ * Handles all the notifications
+ *
+ * @see Notification
+ */
 public class NotificationMenu implements Operation {
     private Operation nextOperation;
-    private Account account;
+    private final Account account;
     private NotificationAPI notificationAPI;
-    private Logger logger = Logger.getLogger(NotificationMenu.class.getName());
+    private final Logger logger = Logger.getLogger(NotificationMenu.class.getName());
+
     public NotificationMenu(Account account) {
         this.account = account;
     }
@@ -22,13 +28,13 @@ public class NotificationMenu implements Operation {
     public void run(EntityManagerFactory emf) {
         notificationAPI = new NotificationAPI(logger, emf);
         System.out.println("Choose an option: ");
-        System.out.println("1. Read and use current Notifications");
+        System.out.println("1. Read and act on current Notifications");
         System.out.println("2. Read old Notifications");
         System.out.println("3. Return to main menu");
 
-        int choice = Safeguards.getInputInterval(1,3);
+        int choice = Safeguards.getInputInterval(1, 3);
 
-        switch (choice){
+        switch (choice) {
             case 1 -> showAndActCurrentNotifications();
             case 2 -> showOldNotifs();
             case 3 -> setNextOperation(new MainMenu(account));
@@ -49,7 +55,7 @@ public class NotificationMenu implements Operation {
             i++;
             System.out.println("Notification " + i + ": " + notif.getMessage());
         }
-        int choice = Safeguards.getInputInterval(0,i);
+        int choice = Safeguards.getInputInterval(0, i);
         if (choice == 0) {
             setNextOperation(new NotificationMenu(account));
             return;
@@ -60,7 +66,7 @@ public class NotificationMenu implements Operation {
         notificationAPI.readNotification(notif);
     }
 
-    private void showOldNotifs(){
+    private void showOldNotifs() {
         List<Notification> notifs = notificationAPI.getAllNotifForAcc(account);
         notifs.removeAll(notificationAPI.getAllUnreadNotifForAcc(account));
         System.out.println("Old notifications: ");
@@ -68,11 +74,11 @@ public class NotificationMenu implements Operation {
         setNextOperation(new NotificationMenu(account));
     }
 
-    private void setNextOperation(Operation nextOperation) {
-        this.nextOperation = nextOperation;
-    }
-
     public Operation getNextOperation() {
         return nextOperation;
+    }
+
+    private void setNextOperation(Operation nextOperation) {
+        this.nextOperation = nextOperation;
     }
 }

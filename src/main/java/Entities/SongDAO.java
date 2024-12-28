@@ -21,16 +21,12 @@ public class SongDAO {
 
     @Override
     public String toString() {
-        return "SongDAO{" +
-                "artist='" + artist + '\'' +
-                ", title='" + title + '\'' +
-                ", link='" + link + '\'' +
-                ", text='" + text + '\'' +
-                '}';
+        return "SongDAO{" + "artist='" + artist + '\'' + ", title='" + title + '\'' + ", link='" + link + '\'' + ", text='" + text + '\'' + '}';
     }
 
     /**
      * Converts current "CSV" type Song to the real Song type
+     *
      * @return Song with the correct class
      */
     public Song toSong() {

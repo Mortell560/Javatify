@@ -54,11 +54,12 @@ abstract class API {
 
     /**
      * Returns all objects of type <b>E</b> that satisfy the given where clause param=value
-     * @param c Class to fetch from
-     * @param paramName Name of the column inside the database
+     *
+     * @param c          Class to fetch from
+     * @param paramName  Name of the column inside the database
      * @param paramValue Value to check for. Must be exact
+     * @param <E>        Type corresponding to the table to fetch
      * @return All objects of type <b>E</b> within the database respecting the condition
-     * @param <E> Type corresponding to the table to fetch
      */
     <E> List<E> getAllWhere(Class<E> c, String paramName, Object paramValue) {
         EntityManager em = entityManagerFactory.createEntityManager();
@@ -84,11 +85,12 @@ abstract class API {
 
     /**
      * Returns all objects of type <b>E</b> that satisfy the given clause param LIKE value
-     * @param c Class to fetch from
-     * @param paramName Name of the column inside the database
+     *
+     * @param c          Class to fetch from
+     * @param paramName  Name of the column inside the database
      * @param paramValue Value to check for. Must be a pattern by SQL standards with the %
+     * @param <E>        Type corresponding to the table to fetch
      * @return All objects of type <b>E</b> within the database respecting the condition
-     * @param <E> Type corresponding to the table to fetch
      */
     <E> List<E> getAllLike(Class<E> c, String paramName, String paramValue) {
         EntityManager em = entityManagerFactory.createEntityManager();
@@ -114,13 +116,14 @@ abstract class API {
 
     /**
      * Returns all the objects of type <b>E</b> that satisfy the given Like param value clause
-     * @param c Class to fetch from
-     * @param paramName Name of the column inside the database
+     *
+     * @param c          Class to fetch from
+     * @param paramName  Name of the column inside the database
      * @param paramValue Value to check for. Must be a pattern by SQL standards with the
-     * @param page Page to return
-     * @param pageSize Pagination size
+     * @param page       Page to return
+     * @param pageSize   Pagination size
+     * @param <E>        Type corresponding to the table to fetch
      * @return All objects of type <b>E</b> within the database respecting the condition
-     * @param <E> Type corresponding to the table to fetch
      */
     <E> List<E> getAllLikePaginated(Class<E> c, String paramName, String paramValue, int page, int pageSize) {
         EntityManager em = entityManagerFactory.createEntityManager();
@@ -147,12 +150,13 @@ abstract class API {
 
     /**
      * Return the object of type <b>E</b> that has the id <b>E</b>
-     * @param c Class to fetch from
-     * @param id Id of target object
-     * @return Object of type <b>E</b> and has the right id or null if there's object with such id
+     *
+     * @param c   Class to fetch from
+     * @param id  Id of target object
      * @param <E>
+     * @return Object of type <b>E</b> and has the right id or null if there's object with such id
      */
-    <E> E getById(Class<E> c, Long id){
+    <E> E getById(Class<E> c, Long id) {
         E res;
         EntityManager em = entityManagerFactory.createEntityManager();
         em.getTransaction().begin();
@@ -165,8 +169,7 @@ abstract class API {
 
         try {
             res = em.createQuery(query).getSingleResult();
-        }
-        catch (NoResultException e){
+        } catch (NoResultException e) {
             res = null;
         }
 
@@ -183,10 +186,11 @@ abstract class API {
 
     /**
      * Creates an object within the database
+     *
      * @param object Object to save
-     * @param <E> Class of the object to save
+     * @param <E>    Class of the object to save
      */
-    <E> void createObject(E object){
+    <E> void createObject(E object) {
         EntityManager em = entityManagerFactory.createEntityManager();
         em.getTransaction().begin();
         em.persist(object);
@@ -201,19 +205,19 @@ abstract class API {
 
     /**
      * Creates several objects within the database. Use this method if you need perfs since entity managers are expensive
+     *
      * @param objects Objects to save
-     * @param <E> Class of the objects to save
+     * @param <E>     Class of the objects to save
      */
-    <E> void createObjects(List<E> objects){
+    <E> void createObjects(List<E> objects) {
         EntityManager em = entityManagerFactory.createEntityManager();
         em.getTransaction().begin();
-        for(E object : objects){
+        for (E object : objects) {
             em.persist(object);
         }
         try {
             em.getTransaction().commit();
-        }
-        catch (RuntimeException e) {
+        } catch (RuntimeException e) {
             logger.severe(e.getMessage());
             em.getTransaction().rollback();
         }
@@ -222,21 +226,21 @@ abstract class API {
 
     /**
      * Removes an object from the database
-     * @param c Class of the object
+     *
+     * @param c      Class of the object
      * @param object Object to remove
+     * @param <E>    Class of the object
      * @return The removed object
-     * @param <E> Class of the object
      */
     @Deprecated(since = "Hibernate broke it")
-    <E> E deleteObject(Class<E> c, E object){
+    <E> E deleteObject(Class<E> c, E object) {
         EntityManager em = entityManagerFactory.createEntityManager();
         em.getTransaction().begin();
         object = em.find(c, object);
         em.remove(object);
         try {
             em.getTransaction().commit();
-        }
-        catch (RuntimeException e) {
+        } catch (RuntimeException e) {
             logger.severe(e.getMessage());
             em.getTransaction().rollback();
         }
@@ -246,20 +250,20 @@ abstract class API {
 
     /**
      * Removes an object from the database
-     * @param c Class of the object
-     * @param id Id of the object to remove
-     * @return The removed object
+     *
+     * @param c   Class of the object
+     * @param id  Id of the object to remove
      * @param <E> Class of the object
+     * @return The removed object
      */
-    <E> E deleteObjectById(Class<E> c, Long id){
+    <E> E deleteObjectById(Class<E> c, Long id) {
         EntityManager em = entityManagerFactory.createEntityManager();
         em.getTransaction().begin();
         E object = em.find(c, id);
         em.remove(object);
         try {
             em.getTransaction().commit();
-        }
-        catch (RuntimeException e) {
+        } catch (RuntimeException e) {
             logger.severe(e.getMessage());
             em.getTransaction().rollback();
         }

@@ -18,14 +18,15 @@ import java.util.logging.Logger;
 public class App {
     private static final EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("Javatify");
     private final Logger logger = Logger.getLogger(App.class.getName());
-    private final String dataPath = "src/main/resources/spotify_millsongdata.csv"; // TODO: Change before handing out
+    private final String dataPath;
     private final SongAPI songAPI;
     private final NotificationAPI notificationAPI;
     private Account currAccount = null;
 
-    public App() {
+    public App(String args) {
         logger.info(App.class.getName() + ": Constructor Started");
         songAPI = new SongAPI(logger, entityManagerFactory);
+        dataPath = args;
         songAPI.loadSongs(dataPath);
         notificationAPI = new NotificationAPI(logger, entityManagerFactory);
         logger.info(App.class.getName() + ": Constructor Finished");

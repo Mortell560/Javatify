@@ -12,19 +12,24 @@ import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.util.logging.Logger;
 
+/**
+ * Handles every login or register attempt for adults
+ */
 public class LoggingOperation implements Operation {
+    private final Logger logger = Logger.getLogger(this.getClass().getName());
     private Account currUser = null;
     private Operation nextOperation = null;
     private AccountAPI accountAPI;
-    private Logger logger = Logger.getLogger(this.getClass().getName());
-    public LoggingOperation() {}
+
+    public LoggingOperation() {
+    }
 
     public void run(EntityManagerFactory factory) {
         System.out.println("Welcome to Javatify\nPlease enter an username to start (Case sensitive): ");
         accountAPI = new AccountAPI(logger, factory);
         Scanner scanner = new Scanner(System.in); // NB: Never close it, it closes also the buffer underlying
         String username = scanner.nextLine().trim();
-        try{
+        try {
             setCurrUser(accountAPI.getAccountByUsername(username));
         } catch (NoSuchElementException e) {
             System.out.println("Creating a new account for this username\n");
@@ -48,7 +53,7 @@ public class LoggingOperation implements Operation {
         System.out.println("Welcome back to Javatify " + getCurrUser().getUsername() + " !\n");
     }
 
-    private void register(String username){
+    private void register(String username) {
         Account account = new Account();
         account.setUsername(username);
         String password, confirmPassword;
@@ -69,14 +74,14 @@ public class LoggingOperation implements Operation {
         int[] date = new int[0];
         do {
             System.out.println("Please enter a valid date of birth (i.e: dd-mm-yyyy): ");
-            try{
+            try {
                 date = Arrays.stream(scanner.nextLine().split("-")).mapToInt(Integer::parseInt).toArray();
+            } catch (Exception ignored) {
             }
-            catch(Exception ignored){}
         } while (date.length != 3);
-        account.setBirthday(new Calendar.Builder().setDate(date[2], date[1]-1, date[0]).build()); // offset by 1 for months
+        account.setBirthday(new Calendar.Builder().setDate(date[2], date[1] - 1, date[0]).build()); // offset by 1 for months
         account.setDateCreation(Calendar.getInstance());
-        if (account.getAge() < 18){
+        if (account.getAge() < 18) {
             System.out.println("You need to be at least 18 years old to register an account yourself !\n");
             setCurrUser(null);
             setNextOperation(new LoggingOperation());
@@ -93,15 +98,15 @@ public class LoggingOperation implements Operation {
         return nextOperation;
     }
 
+    private void setNextOperation(Operation nextOperation) {
+        this.nextOperation = nextOperation;
+    }
+
     public Account getCurrUser() {
         return currUser;
     }
 
     public void setCurrUser(Account currUser) {
         this.currUser = currUser;
-    }
-
-    private void setNextOperation(Operation nextOperation) {
-        this.nextOperation = nextOperation;
     }
 }

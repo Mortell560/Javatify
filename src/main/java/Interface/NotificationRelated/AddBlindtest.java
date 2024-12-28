@@ -11,12 +11,16 @@ import jakarta.persistence.EntityManagerFactory;
 import java.util.Scanner;
 import java.util.logging.Logger;
 
+/**
+ * Handles the notification 'Add a blindtest'
+ */
 public class AddBlindtest implements Operation {
+    private final Logger logger = Logger.getLogger(AddBlindtest.class.getName());
     private Operation nextOperation;
     private Long accId, btId;
     private AccountAPI accountAPI;
     private BlindTestAPI blindTestAPI;
-    private Logger logger = Logger.getLogger(AddBlindtest.class.getName());
+
     public AddBlindtest(String args) {
         parseArgs(args);
     }
@@ -42,11 +46,11 @@ public class AddBlindtest implements Operation {
         btId = Long.parseLong(parts[1]);
     }
 
-    private void setNextOperation(Operation nextOperation) {
-        this.nextOperation = nextOperation;
-    }
-
     public Operation getNextOperation() {
         return nextOperation;
+    }
+
+    private void setNextOperation(Operation nextOperation) {
+        this.nextOperation = nextOperation;
     }
 }

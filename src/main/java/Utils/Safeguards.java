@@ -1,10 +1,10 @@
 package Utils;
 
-import java.util.ArrayList;
-import java.util.InputMismatchException;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
+/**
+ * Special utils class only used for some redundant work
+ */
 public class Safeguards {
     /**
      * Returns an option between a and b inclusive
@@ -18,7 +18,8 @@ public class Safeguards {
         boolean valid = false;
         while (!valid) {
             try{
-                choice = scanner.nextInt();
+                String input = scanner.nextLine();
+                choice = Integer.parseInt(input);
                 if (choice <= b && choice >= a) {
                     valid = true;
                 }
@@ -26,7 +27,28 @@ public class Safeguards {
                     System.out.println("Invalid choice");
                 }
             }
-            catch (InputMismatchException e) {
+            catch (NumberFormatException | NoSuchElementException e) {
+                System.out.println("Invalid choice");
+            }
+        }
+        return choice;
+    }
+
+    /**
+     * Returns a valid integer option
+     * @return option
+     */
+    public static int getInputInteger(){
+        Scanner scanner = new Scanner(System.in);
+        int choice = -1;
+        boolean valid = false;
+        while (!valid) {
+            try{
+                String input = scanner.nextLine();
+                choice = Integer.parseInt(input);
+                valid = true;
+            }
+            catch (NumberFormatException | NoSuchElementException e) {
                 System.out.println("Invalid choice");
             }
         }

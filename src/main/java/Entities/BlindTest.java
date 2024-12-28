@@ -14,7 +14,7 @@ public class BlindTest {
     private Long id;
     @Column(nullable = false)
     private String name;
-    @OneToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH})
     private Account owner;
     @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
     private Set<Account> invitedAccounts;
@@ -23,6 +23,14 @@ public class BlindTest {
     @Column(nullable = false)
     @Basic
     private int MODE; // 1 for exact title, 2 for artist, 3 for both with choices
+    @Column
+    @Basic
+    private int nbChoices;
+
+    @Override
+    public String toString() {
+        return getName() + " by " + getOwner().getUsername() + " with mode " + MODE;
+    }
 
     public String getName() {
         return name;
@@ -70,5 +78,13 @@ public class BlindTest {
 
     public void setOwner(Account owner) {
         this.owner = owner;
+    }
+
+    public int getNbChoices() {
+        return nbChoices;
+    }
+
+    public void setNbChoices(int nbChoices) {
+        this.nbChoices = nbChoices;
     }
 }

@@ -2,7 +2,6 @@ package Interface.SongRelated;
 
 import DatabaseAPI.*;
 import Entities.*;
-import Interface.Menu.MainMenu;
 import Interface.Menu.MusicSearchMenu;
 import Interface.Operation;
 import Utils.Safeguards;
@@ -10,16 +9,18 @@ import jakarta.persistence.EntityManagerFactory;
 
 import java.util.Calendar;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Logger;
 
+/**
+ * Menu that handles all the interactions with the music
+ */
 public class MusicConsulting implements Operation {
     private final Logger logger = Logger.getLogger(MusicConsulting.class.getName());
-    private final String args;
     private Operation nextOperation;
     private Account account;
     private Song song;
-    private Playlist playlist;
     private SongAPI songAPI;
     private AccountAPI accountAPI;
     private PlaylistAPI playlistAPI;
@@ -29,7 +30,6 @@ public class MusicConsulting implements Operation {
     private Long accId, songId;
 
     public MusicConsulting(String args) {
-        this.args = args;
         parseArgs(args);
     }
 
@@ -93,7 +93,7 @@ public class MusicConsulting implements Operation {
 
     private void removeFromBlindTest() {
         List<BlindTest> b = blindTestAPI.getAllBTForAccount(account);
-        b.removeIf(x -> !x.getSongs().contains(song));
+        b.removeIf(x -> x.getSongs().stream().noneMatch(s -> Objects.equals(s.getId(), songId)));
         if (b.isEmpty()) {
             System.out.println("No blindtest found with this song !");
             return;
@@ -172,8 +172,8 @@ public class MusicConsulting implements Operation {
 
     /**
      * Parsed args for music to read are always the same: <br/>
-     * accountId;songId;IsReco <br/>
-     * If it is a recommendation, the real value of IsReco doesn't matter. It just has to be there
+     * accountId;songId <br/>
+     *
      * @param args arguments to be parsed
      */
     private void parseArgs(String args) {

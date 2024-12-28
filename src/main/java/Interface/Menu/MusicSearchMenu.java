@@ -1,19 +1,20 @@
 package Interface.Menu;
 
 import Entities.Account;
-import Entities.Song;
 import Interface.Operation;
-import Interface.SongRelated.MusicConsulting;
 import Interface.SongRelated.SongSearch;
 import Utils.Safeguards;
 import jakarta.persistence.EntityManagerFactory;
 
-import java.util.InputMismatchException;
-import java.util.Scanner;
-
+/**
+ * Menu used to select the search mode for the SongSearch
+ *
+ * @see SongSearch
+ */
 public class MusicSearchMenu implements Operation {
+    private final Account account;
     private Operation nextOperation;
-    private Account account;
+
     public MusicSearchMenu(Account account) {
         this.account = account;
     }
@@ -22,7 +23,7 @@ public class MusicSearchMenu implements Operation {
         return nextOperation;
     }
 
-    public void setNextOperation(Operation nextOperation) {
+    private void setNextOperation(Operation nextOperation) {
         this.nextOperation = nextOperation;
     }
 
@@ -38,8 +39,7 @@ public class MusicSearchMenu implements Operation {
 
         if (choice <= 4) {
             setNextOperation(new SongSearch(account, choice));
-        }
-        else {
+        } else {
             setNextOperation(new MainMenu(account));
         }
 

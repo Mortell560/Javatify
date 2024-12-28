@@ -6,9 +6,12 @@ import Interface.Operation;
 import Utils.Safeguards;
 import jakarta.persistence.EntityManagerFactory;
 
+/**
+ * Main Menu
+ */
 public class MainMenu implements Operation {
-    private Operation nextOperation;
     private final Account account;
+    private Operation nextOperation;
 
     public MainMenu(Account account) {
         this.account = account;
@@ -18,8 +21,8 @@ public class MainMenu implements Operation {
         System.out.println("Please select what you want to do: ");
         System.out.println("1. Account Settings");
         System.out.println("2. Search for a music");
-        System.out.println("3. Manage playlists");
-        System.out.println("4. Manage blind tests");
+        System.out.println("3. Manage or play playlists");
+        System.out.println("4. Manage or play blind tests");
         System.out.println("5. Read notifications");
         System.out.println("6. Logout");
         System.out.println("7. Exit");

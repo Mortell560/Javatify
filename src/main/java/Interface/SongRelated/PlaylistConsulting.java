@@ -1,6 +1,5 @@
 package Interface.SongRelated;
 
-import DatabaseAPI.PlaylistAPI;
 import DatabaseAPI.SongAPI;
 import DatabaseAPI.StatsAPI;
 import Entities.Account;
@@ -19,14 +18,17 @@ import java.util.Scanner;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+/**
+ * Menu for consulting playlists
+ */
 public class PlaylistConsulting implements Operation {
+    private final int MAX_PAGE_SIZE = 20;
     private Operation nextOperation;
-    private Playlist playlist;
-    private Account account;
+    private final Playlist playlist;
+    private final Account account;
     private SongAPI songAPI;
     private StatsAPI statsAPI;
-    private Logger logger = Logger.getLogger(PlaylistConsulting.class.getName());
-    private final int MAX_PAGE_SIZE = 20;
+    private final Logger logger = Logger.getLogger(PlaylistConsulting.class.getName());
 
     public PlaylistConsulting(Account account, Playlist playlist) {
         this.account = account;
@@ -54,47 +56,41 @@ public class PlaylistConsulting implements Operation {
         }
     }
 
-    private void showHelp(){
+    private void showHelp() {
         String s = "";
-        s += "To order the responses that you get from the search results, use one of the following modes:\n"
-                + "/title to order by titles\n"
-                + "/count to order by the number of your own listening counts\n"
-                + "/friend to order by the number of recommendations made by your friends\n";
+        s += "To order the responses that you get from the search results, use one of the following modes:\n" + "/title to order by titles\n" + "/count to order by the number of your own listening counts\n" + "/friend to order by the number of recommendations made by your friends\n";
         System.out.println(s);
     }
 
     /**
      * Important note, the results are already ordered by title and are added in the same order so this takes care of 2 cases.
+     *
      * @param songs songs to sort
-     * @param sort sorting mode
+     * @param sort  sorting mode
      * @return sorted songs
      */
-    private List<Song> orderBy(List<Song> songs, String sort){
+    private List<Song> orderBy(List<Song> songs, String sort) {
         if (sort.equalsIgnoreCase("help")) {
             showHelp();
-        }
-        else if (sort.equalsIgnoreCase("count")) {
+        } else if (sort.equalsIgnoreCase("count")) {
             HashMap<Song, Integer> songStat = new HashMap<>();
             for (Song song : songs) {
                 PersonalStats p = statsAPI.getPersonalStats(account, song);
                 if (p != null) {
                     songStat.put(song, p.getViews());
-                }
-                else{
+                } else {
                     songStat.put(song, 0);
                 }
             }
             List<Map.Entry<Song, Integer>> res = songStat.entrySet().stream().sorted(Map.Entry.comparingByValue()).toList();
             songs = res.stream().map(Map.Entry::getKey).collect(Collectors.toList());
-        }
-        else if (sort.equalsIgnoreCase("friend")) {
+        } else if (sort.equalsIgnoreCase("friend")) {
             HashMap<Song, Integer> songStat = new HashMap<>();
             for (Song song : songs) {
                 PersonalStats p = statsAPI.getPersonalStats(account, song);
                 if (p != null) {
                     songStat.put(song, p.getNbReco());
-                }
-                else{
+                } else {
                     songStat.put(song, 0);
                 }
             }
@@ -104,10 +100,10 @@ public class PlaylistConsulting implements Operation {
         return songs;
     }
 
-    private void showSongs(List<Song> songs){
+    private void showSongs(List<Song> songs) {
         System.out.println("Num | Title | Artist | Link | Listening Count");
         int i = 0;
-        for (Song song : songs){
+        for (Song song : songs) {
             System.out.println(i + " - " + song.toMinimalString());
             i++;
         }
@@ -134,20 +130,24 @@ public class PlaylistConsulting implements Operation {
                 orderBy = input.replace("/", "");
             } else if (input.contains("<")) {
                 page--;
-                if (page < 1){ // Safeguard
+                if (page < 1) { // Safeguard
                     page = 1;
                 }
             } else if (input.contains(">")) {
                 page++;
             }
 
-        } while(!input.equalsIgnoreCase("null"));
+        } while (!input.equalsIgnoreCase("null"));
 
         setNextOperation(new PlaylistConsulting(account, playlist));
     }
 
-    private void playTheList(){
+    private void playTheList() {
         List<Song> songs = playlist.getSongs();
+        setNextOperation(new PlaylistConsulting(account, playlist));
+        if (songs.isEmpty()) {
+            return;
+        }
         Scanner scanner = new Scanner(System.in);
         int i = 0;
         String input = "";
@@ -158,21 +158,18 @@ public class PlaylistConsulting implements Operation {
             songAPI.addListening(songs.get(i));
             System.out.println("Enter '>' or '<' and if you want to leave enter null !");
             input = scanner.nextLine().trim();
-            if (input.equalsIgnoreCase("<")){
+            if (input.equalsIgnoreCase("<")) {
                 i--;
-                if (i < 0){
-                    i = songs.size()-1;
+                if (i < 0) {
+                    i = songs.size() - 1;
                 }
-            }
-            else if (input.equalsIgnoreCase(">")){
+            } else if (input.equalsIgnoreCase(">")) {
                 i++;
-                if (i == songs.size()){
+                if (i == songs.size()) {
                     i = 0;
                 }
             }
         } while (!input.equalsIgnoreCase("null"));
-
-        setNextOperation(new PlaylistConsulting(account, playlist));
     }
 
     public Operation getNextOperation() {

@@ -11,6 +11,9 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.logging.Logger;
 
+/**
+ * Handles the notification 'Add a family member' for adults
+ */
 public class AddFamily implements Operation {
     private Long accId, familyId;
     private Logger logger = Logger.getLogger(AddFamily.class.getName());

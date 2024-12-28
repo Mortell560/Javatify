@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 
 import java.time.LocalDate;
 import java.time.Period;
-import java.util.*;
+import java.util.Calendar;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "Account")
@@ -12,7 +14,6 @@ public class Account {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     @Column
     private String name;
     @Column
@@ -35,20 +36,16 @@ public class Account {
     private Set<Account> family = new HashSet<>();
 
     @Override
-    public String toString(){
-        return "Account Id: " + getId() + "\nName: " + getName() + "\nSurname: " + getSurname() + "\nUsername: " + getUsername()
-                + "\nBirthday: " + getBirthday().getTime()
-                + "\nDateCreation: " + getDateCreation().getTime()
-                + "\nFriends: " + String.join(",", getFriends().stream().map(Account::getUsername).toArray(String[]::new))
-                + "\nFamily: " + String.join(",", getFamily().stream().map(Account::getUsername).toArray(String[]::new));
+    public String toString() {
+        return "Account Id: " + getId() + "\nName: " + getName() + "\nSurname: " + getSurname() + "\nUsername: " + getUsername() + "\nBirthday: " + getBirthday().getTime() + "\nDateCreation: " + getDateCreation().getTime() + "\nFriends: " + String.join(",", getFriends().stream().map(Account::getUsername).toArray(String[]::new)) + "\nFamily: " + String.join(",", getFamily().stream().map(Account::getUsername).toArray(String[]::new));
     }
 
-    public int getAge(){
-        int d1,m1,y1;
+    public int getAge() {
+        int d1, m1, y1;
         d1 = birthday.get(Calendar.DAY_OF_MONTH);
-        m1 = birthday.get(Calendar.MONTH)+1;
+        m1 = birthday.get(Calendar.MONTH) + 1;
         y1 = birthday.get(Calendar.YEAR);
-        return Period.between(LocalDate.of(y1,m1,d1), LocalDate.now()).getYears();
+        return Period.between(LocalDate.of(y1, m1, d1), LocalDate.now()).getYears();
     }
 
     public Set<Account> getFriends() {

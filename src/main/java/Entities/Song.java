@@ -25,9 +25,10 @@ public class Song {
 
     /**
      * Used while navigating between songs because the text can get pretty heavy
+     *
      * @return a string with the minimum of information about the song
      */
-    public String toMinimalString(){
+    public String toMinimalString() {
         return getTitle() + " - " + getArtist() + " - " + getLink() + " - " + getListeningCount();
     }
 

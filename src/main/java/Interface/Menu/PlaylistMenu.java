@@ -10,22 +10,31 @@ import Interface.SongRelated.PlaylistConsulting;
 import Utils.Safeguards;
 import jakarta.persistence.EntityManagerFactory;
 
-import java.util.*;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Scanner;
+import java.util.Set;
 import java.util.logging.Logger;
 
+/**
+ * Handles and manages the playlists
+ *
+ * @see Playlist
+ */
 public class PlaylistMenu implements Operation {
     private Operation nextOperation;
-    private Account account;
+    private final Account account;
     private PlaylistAPI playlistAPI;
     private NotificationAPI notificationAPI;
-    private Logger logger = Logger.getLogger(PlaylistMenu.class.getName());
+    private final Logger logger = Logger.getLogger(PlaylistMenu.class.getName());
+
     public PlaylistMenu(Account account) {
         this.account = account;
     }
 
     public void run(EntityManagerFactory emf) {
-        playlistAPI = new PlaylistAPI(logger,emf);
-        notificationAPI = new NotificationAPI(logger,emf);
+        playlistAPI = new PlaylistAPI(logger, emf);
+        notificationAPI = new NotificationAPI(logger, emf);
         System.out.println("Choose an operation: ");
         System.out.println("1. Create Playlist");
         System.out.println("2. Delete Playlist");
@@ -34,7 +43,7 @@ public class PlaylistMenu implements Operation {
         System.out.println("5. Add a collaborative playlist from a friend/family");
         System.out.println("6. Exit");
 
-        int choice = Safeguards.getInputInterval(1,6);
+        int choice = Safeguards.getInputInterval(1, 6);
 
         switch (choice) {
             case 1 -> createPlaylist();
@@ -48,6 +57,7 @@ public class PlaylistMenu implements Operation {
 
     private void addPlaylistCollaborative() {
         List<Playlist> p = playlistAPI.getAllAccessiblePlaylistsForAccount(account);
+        setNextOperation(new PlaylistMenu(account));
         if (p.isEmpty()) {
             System.out.println("No playlists found !");
             return;
@@ -58,9 +68,8 @@ public class PlaylistMenu implements Operation {
             i++;
             System.out.println("Playlist " + i + ": " + pp.getName());
         }
-        int choice = Safeguards.getInputInterval(0,i);
+        int choice = Safeguards.getInputInterval(0, i);
         if (choice == 0) {
-            setNextOperation(new PlaylistMenu(account));
             return;
         }
         Playlist playlist = p.get(choice - 1);
@@ -79,7 +88,7 @@ public class PlaylistMenu implements Operation {
             i++;
             System.out.println("Playlist " + i + ": " + pp.getName());
         }
-        int choice = Safeguards.getInputInterval(0,i);
+        int choice = Safeguards.getInputInterval(0, i);
         if (choice == 0) {
             setNextOperation(new PlaylistMenu(account));
             return;
@@ -100,7 +109,7 @@ public class PlaylistMenu implements Operation {
             i++;
             System.out.println("Playlist " + i + ": " + pp.getName());
         }
-        int choice = Safeguards.getInputInterval(0,i);
+        int choice = Safeguards.getInputInterval(0, i);
         if (choice == 0) {
             setNextOperation(new PlaylistMenu(account));
             return;
@@ -113,14 +122,14 @@ public class PlaylistMenu implements Operation {
             System.out.println("You have no one to share this playlist with !");
             setNextOperation(new PlaylistMenu(account));
             return;
-        };
+        }
         int j = 0;
         System.out.println("Choose a person to share the playlist with (0 to return): ");
         for (Account a : accounts) {
             j++;
             System.out.println("Account " + j + ": " + a.getName());
         }
-        int choice2 = Safeguards.getInputInterval(0,j);
+        int choice2 = Safeguards.getInputInterval(0, j);
         if (choice2 == 0) {
             setNextOperation(new PlaylistMenu(account));
             return;
@@ -162,13 +171,13 @@ public class PlaylistMenu implements Operation {
             i++;
             System.out.println("Playlist " + i + ": " + p.getName());
         }
-        int choice = Safeguards.getInputInterval(0,i);
+        int choice = Safeguards.getInputInterval(0, i);
         if (choice == 0) {
             System.out.println("Returning...");
             return;
         }
         Playlist p = l.get(choice - 1);
-        if (p.isCollaborative() && p.getOwners().size() > 1){
+        if (p.isCollaborative() && p.getOwners().size() > 1) {
             System.out.println("Ownership of the playlist will be kept by other owners !");
         }
         playlistAPI.deletePlaylist(p.getId(), account);

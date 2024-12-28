@@ -9,6 +9,12 @@ import jakarta.persistence.EntityManagerFactory;
 import java.util.List;
 import java.util.logging.Logger;
 
+
+/**
+ * Class used for the database calls for the PersonalStats
+ *
+ * @see PersonalStats
+ */
 public class StatsAPI extends API {
     public StatsAPI(Logger logger, EntityManagerFactory factory) {
         super(logger, factory);
@@ -21,6 +27,12 @@ public class StatsAPI extends API {
         personalStats.setNbReco(0);
         personalStats.setViews(0);
         super.createObject(personalStats);
+    }
+
+    public void deleteStatsForAccount(Account account) {
+        List<PersonalStats> p = super.getAll(PersonalStats.class);
+        p.removeIf(personal -> personal.getAccount().getId().equals(account.getId()));
+        p.forEach(x -> super.deleteObjectById(PersonalStats.class, x.getId()));
     }
 
     public void addView(Account account, Song song) {
