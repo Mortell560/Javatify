@@ -12,7 +12,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 public class PlaylistAPI extends API {
     public PlaylistAPI(Logger logger, EntityManagerFactory factory) {
@@ -23,9 +22,6 @@ public class PlaylistAPI extends API {
         return super.getById(Playlist.class, id);
     }
 
-    public List<Song> getAllSongs(Long id) {
-        return super.getById(Playlist.class, id).getSongs();
-    }
 
     public void createPlaylist(String title, Account owner, boolean collaborative) {
         Playlist playlist = new Playlist();
@@ -59,7 +55,7 @@ public class PlaylistAPI extends API {
 
     public void addOwnerToPlaylist(Long id, Account owner) {
         Playlist p = super.getById(Playlist.class, id);
-        if (!p.isCollaborative()){
+        if (!p.isCollaborative()) {
             logger.warning("This is not a collaborative playlist !");
             return;
         }
@@ -99,7 +95,7 @@ public class PlaylistAPI extends API {
         em.getTransaction().begin();
         p = em.merge(p);
         em.refresh(p);
-        p.getSongs().remove(song);
+        p.getSongs().removeIf(x -> x.getId().equals(song.getId()));
         try {
             em.getTransaction().commit();
         } catch (RuntimeException e) {
@@ -109,18 +105,19 @@ public class PlaylistAPI extends API {
         em.close();
     }
 
+
     /**
      * Removes a user from a playlist <br/>
      * <b>This method will only remove the playlist if there's no owner left to it<b/>
-     * @param id id of the playlist affected
+     *
+     * @param id    id of the playlist affected
      * @param owner Account to remove from the playlist
      */
     public void deletePlaylist(Long id, Account owner) {
         Playlist p = super.getById(Playlist.class, id);
-        if (p.isCollaborative()){
+        if (p.isCollaborative()) {
             removeFromCollaborative(p, owner);
-        }
-        else {
+        } else {
             super.deleteObjectById(Playlist.class, id);
         }
     }
@@ -128,7 +125,7 @@ public class PlaylistAPI extends API {
     private void removeFromCollaborative(Playlist playlist, Account owner) {
         EntityManager em = entityManagerFactory.createEntityManager();
         playlist.getOwners().removeIf(x -> x.getId().equals(owner.getId()));
-        if (playlist.getOwners().isEmpty()){
+        if (playlist.getOwners().isEmpty()) {
             super.deleteObjectById(Playlist.class, playlist.getId());
             return;
         }

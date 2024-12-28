@@ -32,11 +32,7 @@ public class App {
         showLogo();
     }
 
-    public Account getCurrAccount() {
-        return currAccount;
-    }
-
-    public void setCurrAccount(Account currAccount) {
+    private void setCurrAccount(Account currAccount) {
         this.currAccount = currAccount;
     }
 

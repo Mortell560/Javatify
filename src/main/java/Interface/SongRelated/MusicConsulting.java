@@ -8,6 +8,7 @@ import Interface.Operation;
 import Utils.Safeguards;
 import jakarta.persistence.EntityManagerFactory;
 
+import java.util.Calendar;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -26,7 +27,6 @@ public class MusicConsulting implements Operation {
     private StatsAPI statsAPI;
     private NotificationAPI notificationAPI;
     private Long accId, songId;
-    private final boolean reco = false;
 
     public MusicConsulting(String args) {
         this.args = args;
@@ -71,11 +71,7 @@ public class MusicConsulting implements Operation {
             case 6 -> recommendTo();
         }
 
-        if (reco) {
-            setNextOperation(new MainMenu(account));
-        } else {
-            setNextOperation(new MusicSearchMenu(account));
-        }
+        setNextOperation(new MusicSearchMenu(account));
     }
 
     private void addToBlindTest() {
@@ -133,6 +129,7 @@ public class MusicConsulting implements Operation {
         notif.setAccount(l.get(choice));
         String args = l.get(choice).getId() + ";" + songId;
         notif.setArgs(args);
+        notif.setTime(Calendar.getInstance());
         notificationAPI.createNotification(notif);
         statsAPI.addReco(l.get(choice), song);
     }
@@ -156,7 +153,7 @@ public class MusicConsulting implements Operation {
 
     private void removeFromPlaylist() {
         List<Playlist> p = playlistAPI.getAllPlaylistsForAccount(account);
-        p.removeIf(playlist -> !playlist.getSongs().contains(song));
+        p.removeIf(playlist -> playlist.getSongs().stream().noneMatch(song -> song.getId().equals(songId)));
         if (p.isEmpty()) {
             System.out.println("No playlist containing this song found !");
             return;
@@ -175,18 +172,14 @@ public class MusicConsulting implements Operation {
 
     /**
      * Parsed args for music to read are always the same: <br/>
-     * accountId;songId;operation;argsForNextOp
-     *
+     * accountId;songId;IsReco <br/>
+     * If it is a recommendation, the real value of IsReco doesn't matter. It just has to be there
      * @param args arguments to be parsed
      */
     private void parseArgs(String args) {
         String[] argParts = args.split(";");
         accId = Long.parseLong(argParts[0]);
         songId = Long.parseLong(argParts[1]);
-        if (argParts.length > 2) {
-
-        }
-
     }
 
     public Operation getNextOperation() {

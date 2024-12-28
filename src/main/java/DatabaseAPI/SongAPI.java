@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 /**
- * Class used
+ * Class used to fetch songs
  */
 public class SongAPI extends API {
     public static final int MAX_SONGS_PER_PAGE = 20;

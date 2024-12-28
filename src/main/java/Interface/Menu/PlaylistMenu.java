@@ -50,6 +50,7 @@ public class PlaylistMenu implements Operation {
         List<Playlist> p = playlistAPI.getAllAccessiblePlaylistsForAccount(account);
         if (p.isEmpty()) {
             System.out.println("No playlists found !");
+            return;
         }
         System.out.println("Choose the playlist you want to add (0 to return): ");
         int i = 0;
@@ -68,7 +69,7 @@ public class PlaylistMenu implements Operation {
     }
 
     private void listenPlaylist() {
-        List<Playlist> p = playlistAPI.getAllAccessiblePlaylistsForAccount(account);
+        List<Playlist> p = playlistAPI.getAllPlaylistsForAccount(account);
         if (p.isEmpty()) {
             System.out.println("No playlists found !");
         }
